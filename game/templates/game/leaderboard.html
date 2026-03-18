@@ -1,0 +1,38 @@
+{% extends 'game/base.html' %}
+{% block title %}Ranking | 2042: Tower Defense{% endblock %}
+{% block content %}
+<section class="card leaderboard-page">
+  <p class="eyebrow">Clasificación global</p>
+  <h1>Ranking completo</h1>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Piloto</th>
+          <th>Score</th>
+          <th>Oleadas</th>
+          <th>Bajas</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in top_entries %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ entry.player_name }}</td>
+          <td>{{ entry.score }}</td>
+          <td>{{ entry.waves_cleared }}</td>
+          <td>{{ entry.enemies_destroyed }}</td>
+          <td>{{ entry.created_at|date:'d/m/Y H:i' }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6">No hay puntajes registrados todavía.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

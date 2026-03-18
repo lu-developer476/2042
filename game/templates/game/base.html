@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}2042: Tower Defense{% endblock %}</title>
+  <meta name="description" content="2042: Tower Defense, juego web futurista hecho con Django y JavaScript.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'game/css/styles.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="{% url 'home' %}">
+        <span class="brand-kicker">SECTOR CORE //</span>
+        <span class="brand-title">2042: Tower Defense</span>
+      </a>
+      <nav class="nav-links">
+        <a href="{% url 'home' %}">Jugar</a>
+        <a href="{% url 'leaderboard' %}">Ranking</a>
+        <a href="/admin/">Admin</a>
+      </nav>
+    </header>
+    {% block content %}{% endblock %}
+  </div>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
