@@ -104,6 +104,9 @@ button, input { font: inherit; }
 .hero-panel h1 { font-size: clamp(2rem, 3.4vw, 3.6rem); line-height: 1.05; margin: 12px 0; }
 .hero-copy { max-width: 75ch; color: var(--muted); font-size: 1.02rem; line-height: 1.7; }
 .hero-sidecard { display: grid; gap: 12px; align-content: start; }
+.scenario-picker { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.scenario-chip { padding: 9px 8px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,0.06); color: var(--muted); cursor: pointer; font-size: 0.78rem; font-weight: 800; }
+.scenario-chip.active { color: #06101b; background: linear-gradient(135deg, var(--cyan), var(--violet)); }
 .label { color: var(--muted); font-size: 0.92rem; }
 .input {
   width: 100%;
@@ -138,7 +141,7 @@ button, input { font: inherit; }
 
 .intel-strip {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -255,6 +258,7 @@ td { color: var(--muted); }
   .topbar { align-items: flex-start; flex-direction: column; }
   .intel-strip { grid-template-columns: 1fr; }
   .button { width: 100%; }
+  .scenario-picker { grid-template-columns: 1fr; }
 }
 
 
