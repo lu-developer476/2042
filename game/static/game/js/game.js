@@ -8,6 +8,13 @@ const overlayMessage = document.getElementById('overlay-message');
 const towerShop = document.getElementById('tower-shop');
 const selectedTowerPanel = document.getElementById('selected-tower-panel');
 const playerNameInput = document.getElementById('player-name');
+const speedButton = document.getElementById('speed-toggle');
+const empButton = document.getElementById('emp-ability');
+const repairButton = document.getElementById('repair-ability');
+const overclockButton = document.getElementById('overclock-ability');
+const wavePreview = document.getElementById('wave-preview');
+const comboValue = document.getElementById('combo-value');
+const speedValue = document.getElementById('speed-value');
 
 const hud = {
   hp: document.getElementById('hp-value'),
@@ -145,6 +152,9 @@ const state = {
   waveInProgress: false,
   playerName: 'Piloto Anónimo',
   lastFrame: 0,
+  speedMultiplier: 1,
+  combo: 1,
+  comboTimer: 0,
 };
 
 function deepCloneNodes() {
@@ -227,6 +237,7 @@ class Tower {
     this.level = 1;
     this.cooldownRemaining = 0;
     this.pendingShots = [];
+    this.overclockTimer = 0;
     this.applyUpgradeStats();
   }
 
@@ -240,7 +251,9 @@ class Tower {
   }
 
   update(dt) {
-    if (this.cooldownRemaining > 0) this.cooldownRemaining -= dt;
+    if (this.overclockTimer > 0) this.overclockTimer -= dt;
+    const fireRateBoost = this.overclockTimer > 0 ? 1.75 : 1;
+    if (this.cooldownRemaining > 0) this.cooldownRemaining -= dt * fireRateBoost;
 
     if (this.pendingShots.length) {
       for (let i = this.pendingShots.length - 1; i >= 0; i -= 1) {
@@ -392,10 +405,15 @@ function destroyEnemy(enemy) {
   state.enemies = state.enemies.filter((entry) => entry !== enemy);
   state.credits += enemy.reward;
   state.kills += 1;
-  state.score += enemy.scoreValue;
+  state.combo = Math.min(state.combo + 0.08, 2.5);
+  state.comboTimer = 4;
+  state.score += Math.round(enemy.scoreValue * state.combo);
   createFloatingText(enemy.x, enemy.y - 28, `+${enemy.reward}c`, '#6cff95');
   updateHud();
+  updateAbilityButtons();
+  updateWavePreview();
 }
+
 
 function resetState() {
   state.started = false;
@@ -415,6 +433,9 @@ function resetState() {
   state.floatingTexts = [];
   state.pendingSpawn = null;
   state.waveInProgress = false;
+  state.speedMultiplier = 1;
+  state.combo = 1;
+  state.comboTimer = 0;
   nodes = deepCloneNodes();
   overlayMessage.classList.remove('hidden');
   overlayMessage.innerHTML = '2042 // Simulación lista<br><small>Elegí un nombre y arrancá.</small>';
@@ -441,6 +462,9 @@ function updateHud() {
   hud.wave.textContent = `${Math.max(state.currentWaveIndex + (state.waveInProgress ? 1 : 0), 0)} / ${state.totalWaves}`;
   hud.kills.textContent = state.kills;
   hud.score.textContent = state.score;
+  comboValue.textContent = `x${state.combo.toFixed(2)}`;
+  speedValue.textContent = `${state.speedMultiplier}x`;
+  updateAbilityButtons();
 }
 
 function renderShop() {
@@ -501,6 +525,17 @@ function renderSelectedTower() {
   }
 }
 
+function updateWavePreview() {
+  const next = wavePlan[state.currentWaveIndex + 1];
+  wavePreview.textContent = next ? next.map((type) => enemyTypes[type].name).join(' · ') : 'FINAL';
+}
+
+function updateAbilityButtons() {
+  empButton.disabled = !state.started || state.gameOver || state.credits < 160 || !state.enemies.length;
+  repairButton.disabled = !state.started || state.gameOver || state.credits < 120 || state.hp >= 20;
+  overclockButton.disabled = !state.started || state.gameOver || state.credits < 90 || !state.selectedTowerId;
+}
+
 function spawnWave() {
   if (!state.started || state.waveInProgress || state.currentWaveIndex + 1 >= wavePlan.length || state.gameOver) return;
   state.currentWaveIndex += 1;
@@ -509,6 +544,7 @@ function spawnWave() {
   state.waveInProgress = true;
   nextWaveButton.disabled = true;
   updateHud();
+  updateWavePreview();
   overlayMessage.classList.add('hidden');
 }
 
@@ -531,6 +567,7 @@ function updateSpawns(dt) {
       createFloatingText(820, 60, `BONUS +${80 + state.currentWaveIndex * 15}c`, '#6df2ff');
       nextWaveButton.disabled = false;
       updateHud();
+      updateWavePreview();
     }
   }
 }
@@ -724,6 +761,11 @@ function updateGame(dt) {
   state.projectiles = state.projectiles.filter((projectile) => projectile.update(dt));
   state.enemies = state.enemies.filter((enemy) => enemy.update(dt));
   updateFloatingTexts(dt);
+  if (state.comboTimer > 0) {
+    state.comboTimer -= dt;
+  } else if (state.combo > 1) {
+    state.combo = Math.max(1, state.combo - dt * 0.35);
+  }
 
   if (state.hp <= 0 && !state.gameOver) {
     finishGame(false);
@@ -737,7 +779,7 @@ function animate(timestamp) {
   if (!state.lastFrame) state.lastFrame = timestamp;
   const dt = Math.min((timestamp - state.lastFrame) / 1000, 0.033);
   state.lastFrame = timestamp;
-  updateGame(dt);
+  updateGame(dt * state.speedMultiplier);
   drawBattlefield();
   requestAnimationFrame(animate);
 }
@@ -779,14 +821,44 @@ function handleCanvasClick(event) {
   state.selectedTowerId = tower.id;
   updateHud();
   renderSelectedTower();
+  updateAbilityButtons();
 }
 
 startButton.addEventListener('click', startGame);
 nextWaveButton.addEventListener('click', spawnWave);
+speedButton.addEventListener('click', () => {
+  state.speedMultiplier = state.speedMultiplier === 1 ? 2 : 1;
+  updateHud();
+});
+empButton.addEventListener('click', () => {
+  if (empButton.disabled) return;
+  state.credits -= 160;
+  state.enemies.forEach((enemy) => { enemy.hp -= 45; enemy.speed = enemy.baseSpeed * 0.45; enemy.slowTimer = 2.5; });
+  state.enemies.filter((enemy) => enemy.hp <= 0).forEach(destroyEnemy);
+  createFloatingText(430, 80, 'EMP', '#6df2ff');
+  updateHud();
+});
+repairButton.addEventListener('click', () => {
+  if (repairButton.disabled) return;
+  state.credits -= 120;
+  state.hp = Math.min(20, state.hp + 5);
+  createFloatingText(865, 420, '+5 CORE', '#6cff95');
+  updateHud();
+});
+overclockButton.addEventListener('click', () => {
+  if (overclockButton.disabled) return;
+  const tower = state.towers.find((entry) => entry.id === state.selectedTowerId);
+  if (!tower) return;
+  state.credits -= 90;
+  tower.overclockTimer = 8;
+  createFloatingText(tower.x - 22, tower.y - 45, 'OVERCLOCK', '#ffc869');
+  updateHud();
+});
 pauseButton.addEventListener('click', () => {
   if (!state.started || state.gameOver) return;
   state.paused = !state.paused;
-  pauseButton.textContent = state.paused ? 'Reanudar' : 'Pausar';
+  const dict = window.I18N_2042?.translations[document.documentElement.lang] || window.I18N_2042?.translations.es;
+  pauseButton.textContent = state.paused ? dict.resume : dict.pause;
   if (state.paused) {
     overlayMessage.classList.remove('hidden');
     overlayMessage.innerHTML = 'SIMULACIÓN EN PAUSA';
@@ -799,7 +871,9 @@ restartButton.addEventListener('click', () => {
   resetState();
 });
 canvas.addEventListener('click', handleCanvasClick);
+window.addEventListener('languagechange', () => { renderShop(); renderSelectedTower(); updateWavePreview(); });
 
 resetState();
+updateWavePreview();
 refreshLeaderboard();
 requestAnimationFrame(animate);
