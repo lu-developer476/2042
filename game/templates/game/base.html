@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,17 +16,24 @@
   <div class="page-shell">
     <header class="topbar">
       <a class="brand" href="{% url 'home' %}">
-        <span class="brand-kicker">SECTOR CORE //</span>
+        <span class="brand-kicker" data-i18n="brandKicker">SECTOR CORE //</span>
         <span class="brand-title">2042: Tower Defense</span>
       </a>
-      <nav class="nav-links">
-        <a href="{% url 'home' %}">Jugar</a>
-        <a href="{% url 'leaderboard' %}">Ranking</a>
-        <a href="/admin/">Admin</a>
-      </nav>
+      <div class="topbar-actions">
+        <nav class="nav-links" aria-label="Principal">
+          <a href="{% url 'home' %}" data-i18n="navPlay">Jugar</a>
+          <a href="{% url 'leaderboard' %}" data-i18n="navLeaderboard">Ranking</a>
+          <a href="/admin/" data-i18n="navAdmin">Admin</a>
+        </nav>
+        <div class="preference-actions" aria-label="Preferencias">
+          <button id="language-toggle" class="button ghost utility-button" type="button" aria-label="Cambiar idioma">🇪🇸/🇺🇸</button>
+          <button id="theme-toggle" class="button ghost utility-button" type="button" data-i18n="themeToggle">Modo oscuro/Modo claro</button>
+        </div>
+      </div>
     </header>
     {% block content %}{% endblock %}
   </div>
+  <script src="{% static 'game/js/preferences.js' %}"></script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>
