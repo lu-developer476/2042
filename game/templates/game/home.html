@@ -14,6 +14,10 @@
   <div class="hero-sidecard">
     <label class="label" for="player-name" data-i18n="pilotName">Nombre del piloto</label>
     <input id="player-name" class="input" type="text" maxlength="30" placeholder="Ej: Lu" data-i18n-placeholder="pilotPlaceholder" />
+    <div>
+      <label class="label">Escenario</label>
+      <div id="scenario-picker" class="scenario-picker"></div>
+    </div>
     <button id="start-game" class="button primary" data-i18n="startSimulation">Iniciar simulación</button>
     <p class="microcopy" data-i18n="loginCopy">No requiere login. El ranking guarda nombre, score, oleadas y bajas.</p>
   </div>
@@ -43,6 +47,10 @@
       <div>
         <span data-i18n="speed">Velocidad</span>
         <strong id="speed-value">1x</strong>
+      </div>
+      <div>
+        <span>Escenario activo</span>
+        <strong id="scenario-value">--</strong>
       </div>
     </div>
 

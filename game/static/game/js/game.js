@@ -15,6 +15,8 @@ const overclockButton = document.getElementById('overclock-ability');
 const wavePreview = document.getElementById('wave-preview');
 const comboValue = document.getElementById('combo-value');
 const speedValue = document.getElementById('speed-value');
+const scenarioValue = document.getElementById('scenario-value');
+const scenarioPicker = document.getElementById('scenario-picker');
 
 const hud = {
   hp: document.getElementById('hp-value'),
@@ -24,26 +26,91 @@ const hud = {
   score: document.getElementById('score-value'),
 };
 
-const pathPoints = [
-  { x: 0, y: 90 },
-  { x: 190, y: 90 },
-  { x: 190, y: 190 },
-  { x: 460, y: 190 },
-  { x: 460, y: 340 },
-  { x: 780, y: 340 },
-  { x: 780, y: 470 },
-  { x: 960, y: 470 },
+const scenarios = [
+  {
+    key: 'neon-docks',
+    name: 'Muelles de Neón',
+    palette: { sky: '#08111f', ground: '#04070d', lane: 'rgba(117, 195, 255, 0.26)', accent: '#6df2ff', hazard: '#ff5e8e' },
+    routes: [
+      [
+        { x: 0, y: 90 }, { x: 190, y: 90 }, { x: 190, y: 190 }, { x: 460, y: 190 },
+        { x: 460, y: 340 }, { x: 780, y: 340 }, { x: 780, y: 470 }, { x: 960, y: 470 },
+      ],
+      [
+        { x: 0, y: 255 }, { x: 150, y: 255 }, { x: 150, y: 410 }, { x: 390, y: 410 },
+        { x: 390, y: 285 }, { x: 650, y: 285 }, { x: 650, y: 470 }, { x: 960, y: 470 },
+      ],
+    ],
+    nodes: [
+      { id: 1, x: 135, y: 205, occupied: null }, { id: 2, x: 290, y: 110, occupied: null },
+      { id: 3, x: 340, y: 295, occupied: null }, { id: 4, x: 520, y: 110, occupied: null },
+      { id: 5, x: 610, y: 260, occupied: null }, { id: 6, x: 710, y: 420, occupied: null },
+      { id: 7, x: 870, y: 300, occupied: null }, { id: 8, x: 265, y: 450, occupied: null },
+    ],
+    props: [
+      { type: 'dock', x: 40, y: 360, w: 110, h: 52 }, { type: 'antenna', x: 840, y: 105, h: 84 },
+      { type: 'reactor', x: 585, y: 455, r: 26 },
+    ],
+  },
+  {
+    key: 'ember-wastes',
+    name: 'Desierto Ígneo',
+    palette: { sky: '#21100a', ground: '#080504', lane: 'rgba(255, 191, 105, 0.28)', accent: '#ffc869', hazard: '#ff7a45' },
+    routes: [
+      [
+        { x: 0, y: 405 }, { x: 205, y: 405 }, { x: 205, y: 250 }, { x: 405, y: 250 },
+        { x: 405, y: 118 }, { x: 715, y: 118 }, { x: 715, y: 470 }, { x: 960, y: 470 },
+      ],
+      [
+        { x: 0, y: 145 }, { x: 245, y: 145 }, { x: 245, y: 335 }, { x: 540, y: 335 },
+        { x: 540, y: 215 }, { x: 820, y: 215 }, { x: 820, y: 470 }, { x: 960, y: 470 },
+      ],
+      [
+        { x: 0, y: 515 }, { x: 330, y: 515 }, { x: 330, y: 382 }, { x: 645, y: 382 },
+        { x: 645, y: 300 }, { x: 835, y: 300 }, { x: 835, y: 470 }, { x: 960, y: 470 },
+      ],
+    ],
+    nodes: [
+      { id: 1, x: 125, y: 320, occupied: null }, { id: 2, x: 300, y: 205, occupied: null },
+      { id: 3, x: 365, y: 455, occupied: null }, { id: 4, x: 520, y: 125, occupied: null },
+      { id: 5, x: 585, y: 430, occupied: null }, { id: 6, x: 760, y: 330, occupied: null },
+      { id: 7, x: 880, y: 155, occupied: null }, { id: 8, x: 665, y: 205, occupied: null },
+    ],
+    props: [
+      { type: 'crystal', x: 95, y: 95, r: 30 }, { type: 'crystal', x: 475, y: 475, r: 24 },
+      { type: 'antenna', x: 900, y: 360, h: 70 },
+    ],
+  },
+  {
+    key: 'aurora-ruins',
+    name: 'Ruinas Aurora',
+    palette: { sky: '#071626', ground: '#050812', lane: 'rgba(140, 120, 255, 0.3)', accent: '#a9fffb', hazard: '#8c78ff' },
+    routes: [
+      [
+        { x: 0, y: 275 }, { x: 155, y: 275 }, { x: 155, y: 115 }, { x: 410, y: 115 },
+        { x: 410, y: 275 }, { x: 690, y: 275 }, { x: 690, y: 470 }, { x: 960, y: 470 },
+      ],
+      [
+        { x: 0, y: 70 }, { x: 280, y: 70 }, { x: 280, y: 215 }, { x: 540, y: 215 },
+        { x: 540, y: 390 }, { x: 785, y: 390 }, { x: 785, y: 470 }, { x: 960, y: 470 },
+      ],
+    ],
+    nodes: [
+      { id: 1, x: 95, y: 170, occupied: null }, { id: 2, x: 265, y: 335, occupied: null },
+      { id: 3, x: 350, y: 160, occupied: null }, { id: 4, x: 500, y: 330, occupied: null },
+      { id: 5, x: 605, y: 125, occupied: null }, { id: 6, x: 725, y: 320, occupied: null },
+      { id: 7, x: 850, y: 410, occupied: null }, { id: 8, x: 805, y: 205, occupied: null },
+    ],
+    props: [
+      { type: 'reactor', x: 80, y: 455, r: 30 }, { type: 'dock', x: 430, y: 430, w: 135, h: 42 },
+      { type: 'crystal', x: 875, y: 95, r: 28 },
+    ],
+  },
 ];
 
-const buildNodes = [
-  { id: 1, x: 135, y: 205, occupied: null },
-  { id: 2, x: 290, y: 110, occupied: null },
-  { id: 3, x: 340, y: 295, occupied: null },
-  { id: 4, x: 520, y: 110, occupied: null },
-  { id: 5, x: 610, y: 260, occupied: null },
-  { id: 6, x: 710, y: 420, occupied: null },
-  { id: 7, x: 870, y: 300, occupied: null },
-];
+function getActiveScenario() {
+  return scenarios[state.scenarioIndex || 0];
+}
 
 const towerTypes = {
   pulse: {
@@ -155,16 +222,17 @@ const state = {
   speedMultiplier: 1,
   combo: 1,
   comboTimer: 0,
+  scenarioIndex: 0,
 };
 
 function deepCloneNodes() {
-  return buildNodes.map((node) => ({ ...node, occupied: null }));
+  return getActiveScenario().nodes.map((node) => ({ ...node, occupied: null }));
 }
 
-let nodes = deepCloneNodes();
+let nodes = [];
 
 class Enemy {
-  constructor(typeKey) {
+  constructor(typeKey, routeIndex = 0) {
     const type = enemyTypes[typeKey];
     this.typeKey = typeKey;
     this.name = type.name;
@@ -178,9 +246,12 @@ class Enemy {
     this.scoreValue = type.score;
     this.evadeChance = type.evadeChance || 0;
     this.radius = typeKey === 'boss' ? 20 : 12;
+    this.routeIndex = routeIndex;
+    this.path = getActiveScenario().routes[routeIndex];
     this.pathIndex = 0;
-    this.x = pathPoints[0].x;
-    this.y = pathPoints[0].y;
+    this.x = this.path[0].x;
+    this.y = this.path[0].y;
+    this.rotation = 0;
     this.slowTimer = 0;
   }
 
@@ -190,7 +261,7 @@ class Enemy {
       if (this.slowTimer <= 0) this.speed = this.baseSpeed;
     }
 
-    const next = pathPoints[this.pathIndex + 1];
+    const next = this.path[this.pathIndex + 1];
     if (!next) {
       state.hp -= this.damage;
       createFloatingText(this.x - 6, this.y - 20, `-${this.damage} CORE`, '#ff7ca7');
@@ -206,18 +277,16 @@ class Enemy {
     }
 
     const step = this.speed * dt;
+    this.rotation = Math.atan2(dy, dx);
     this.x += (dx / distance) * Math.min(step, distance);
     this.y += (dy / distance) * Math.min(step, distance);
     return true;
   }
 
   draw() {
-    ctx.save();
-    ctx.beginPath();
-    ctx.fillStyle = this.color;
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    ctx.fill();
+    drawEnemyShape(this);
 
+    ctx.save();
     ctx.fillStyle = 'rgba(255,255,255,0.12)';
     ctx.fillRect(this.x - 18, this.y - 24, 36, 5);
     ctx.fillStyle = '#6cff95';
@@ -336,6 +405,71 @@ class Tower {
   }
 }
 
+
+function drawEnemyShape(enemy) {
+  ctx.save();
+  ctx.translate(enemy.x, enemy.y);
+  ctx.rotate(enemy.rotation);
+  ctx.shadowColor = enemy.color;
+  ctx.shadowBlur = 10;
+  ctx.fillStyle = enemy.color;
+  ctx.strokeStyle = 'rgba(255,255,255,0.72)';
+  ctx.lineWidth = 2;
+
+  if (enemy.typeKey === 'scout') {
+    ctx.beginPath();
+    ctx.moveTo(enemy.radius + 7, 0);
+    ctx.lineTo(-enemy.radius, -enemy.radius * 0.75);
+    ctx.lineTo(-enemy.radius * 0.55, 0);
+    ctx.lineTo(-enemy.radius, enemy.radius * 0.75);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  } else if (enemy.typeKey === 'crawler') {
+    ctx.fillRect(-enemy.radius, -enemy.radius * 0.7, enemy.radius * 2, enemy.radius * 1.4);
+    for (let i = -1; i <= 1; i += 1) {
+      ctx.beginPath();
+      ctx.moveTo(-enemy.radius * 0.6, i * 7);
+      ctx.lineTo(-enemy.radius * 1.45, i * 11);
+      ctx.moveTo(enemy.radius * 0.6, i * 7);
+      ctx.lineTo(enemy.radius * 1.45, i * 11);
+      ctx.stroke();
+    }
+  } else if (enemy.typeKey === 'tank') {
+    ctx.beginPath();
+    ctx.roundRect(-enemy.radius * 1.25, -enemy.radius, enemy.radius * 2.5, enemy.radius * 2, 5);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#241308';
+    ctx.fillRect(-enemy.radius * 0.25, -enemy.radius * 1.25, enemy.radius * 1.35, enemy.radius * 0.45);
+  } else if (enemy.typeKey === 'ghost') {
+    ctx.globalAlpha = 0.78 + Math.sin(performance.now() / 120) * 0.15;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, enemy.radius * 1.35, enemy.radius * 0.9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(enemy.radius * 0.4, -3, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+  } else if (enemy.typeKey === 'boss') {
+    ctx.beginPath();
+    for (let i = 0; i < 6; i += 1) {
+      const angle = (Math.PI * 2 * i) / 6;
+      const r = i % 2 ? enemy.radius * 0.9 : enemy.radius * 1.45;
+      ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#08040a';
+    ctx.beginPath();
+    ctx.arc(0, 0, enemy.radius * 0.42, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 class Projectile {
   constructor(fromX, fromY, target, damage, isShock, critChance = 0) {
     this.x = fromX;
@@ -377,6 +511,7 @@ class Projectile {
     }
 
     const step = this.speed * dt;
+    this.rotation = Math.atan2(dy, dx);
     this.x += (dx / distance) * Math.min(step, distance);
     this.y += (dy / distance) * Math.min(step, distance);
     return true;
@@ -444,6 +579,7 @@ function resetState() {
   pauseButton.textContent = 'Pausar';
   renderShop();
   renderSelectedTower();
+  renderScenarioPicker();
   updateHud();
 }
 
@@ -454,6 +590,7 @@ function startGame() {
   nextWaveButton.disabled = false;
   pauseButton.disabled = false;
   startButton.disabled = true;
+  renderScenarioPicker();
 }
 
 function updateHud() {
@@ -464,9 +601,29 @@ function updateHud() {
   hud.score.textContent = state.score;
   comboValue.textContent = `x${state.combo.toFixed(2)}`;
   speedValue.textContent = `${state.speedMultiplier}x`;
+  scenarioValue.textContent = getActiveScenario().name;
   updateAbilityButtons();
 }
 
+
+function renderScenarioPicker() {
+  scenarioPicker.innerHTML = '';
+  scenarios.forEach((scenario, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `scenario-chip ${state.scenarioIndex === index ? 'active' : ''}`;
+    button.textContent = scenario.name;
+    button.disabled = state.started;
+    button.addEventListener('click', () => {
+      if (state.started) return;
+      state.scenarioIndex = index;
+      nodes = deepCloneNodes();
+      renderScenarioPicker();
+      updateHud();
+    });
+    scenarioPicker.appendChild(button);
+  });
+}
 function renderShop() {
   towerShop.innerHTML = '';
   Object.values(towerTypes).forEach((towerType) => {
@@ -540,7 +697,7 @@ function spawnWave() {
   if (!state.started || state.waveInProgress || state.currentWaveIndex + 1 >= wavePlan.length || state.gameOver) return;
   state.currentWaveIndex += 1;
   const queue = [...wavePlan[state.currentWaveIndex]];
-  state.pendingSpawn = { queue, timer: 0.6 };
+  state.pendingSpawn = { queue, timer: 0.6, routeCursor: 0 };
   state.waveInProgress = true;
   nextWaveButton.disabled = true;
   updateHud();
@@ -553,7 +710,10 @@ function updateSpawns(dt) {
   state.pendingSpawn.timer -= dt;
   if (state.pendingSpawn.timer <= 0 && state.pendingSpawn.queue.length) {
     const enemyType = state.pendingSpawn.queue.shift();
-    state.enemies.push(new Enemy(enemyType));
+    const scenario = getActiveScenario();
+    const routeIndex = state.pendingSpawn.routeCursor % scenario.routes.length;
+    state.pendingSpawn.routeCursor += 1;
+    state.enemies.push(new Enemy(enemyType, routeIndex));
     state.pendingSpawn.timer = enemyType === 'boss' ? 1.25 : 0.85;
   }
   if (!state.pendingSpawn.queue.length && !state.enemies.length) {
@@ -638,14 +798,16 @@ async function refreshLeaderboard() {
 function drawBattlefield() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  const scenario = getActiveScenario();
   const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-  gradient.addColorStop(0, '#08111f');
-  gradient.addColorStop(1, '#04070d');
+  gradient.addColorStop(0, scenario.palette.sky);
+  gradient.addColorStop(1, scenario.palette.ground);
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  drawGrid();
-  drawPath();
+  drawScenarioProps(scenario);
+  drawGrid(scenario);
+  drawPaths(scenario);
   drawNodes();
   drawCore();
 
@@ -655,9 +817,9 @@ function drawBattlefield() {
   drawFloatingTexts();
 }
 
-function drawGrid() {
+function drawGrid(scenario) {
   ctx.save();
-  ctx.strokeStyle = 'rgba(109, 242, 255, 0.05)';
+  ctx.strokeStyle = `${scenario.palette.accent}14`;
   ctx.lineWidth = 1;
   for (let x = 0; x <= canvas.width; x += 48) {
     ctx.beginPath();
@@ -675,28 +837,76 @@ function drawGrid() {
   ctx.restore();
 }
 
-function drawPath() {
-  ctx.save();
-  ctx.strokeStyle = 'rgba(117, 195, 255, 0.28)';
-  ctx.lineWidth = 34;
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(pathPoints[0].x, pathPoints[0].y);
-  for (const point of pathPoints.slice(1)) {
-    ctx.lineTo(point.x, point.y);
-  }
-  ctx.stroke();
+function drawPaths(scenario) {
+  scenario.routes.forEach((route, index) => {
+    ctx.save();
+    ctx.strokeStyle = index === 0 ? scenario.palette.lane : `${scenario.palette.hazard}33`;
+    ctx.lineWidth = index === 0 ? 34 : 28;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(route[0].x, route[0].y);
+    for (const point of route.slice(1)) ctx.lineTo(point.x, point.y);
+    ctx.stroke();
 
-  ctx.strokeStyle = 'rgba(109, 242, 255, 0.75)';
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(pathPoints[0].x, pathPoints[0].y);
-  for (const point of pathPoints.slice(1)) {
-    ctx.lineTo(point.x, point.y);
-  }
-  ctx.stroke();
-  ctx.restore();
+    ctx.setLineDash([16, 16]);
+    ctx.lineDashOffset = -performance.now() / (80 + index * 18);
+    ctx.strokeStyle = index === 0 ? scenario.palette.accent : scenario.palette.hazard;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(route[0].x, route[0].y);
+    for (const point of route.slice(1)) ctx.lineTo(point.x, point.y);
+    ctx.stroke();
+    ctx.restore();
+  });
+}
+
+function drawScenarioProps(scenario) {
+  scenario.props.forEach((prop) => {
+    ctx.save();
+    ctx.shadowColor = scenario.palette.accent;
+    ctx.shadowBlur = 14;
+    if (prop.type === 'dock') {
+      ctx.fillStyle = 'rgba(255,255,255,0.05)';
+      ctx.strokeStyle = `${scenario.palette.accent}88`;
+      ctx.lineWidth = 2;
+      ctx.fillRect(prop.x, prop.y, prop.w, prop.h);
+      ctx.strokeRect(prop.x, prop.y, prop.w, prop.h);
+      for (let i = 12; i < prop.w; i += 24) {
+        ctx.beginPath();
+        ctx.moveTo(prop.x + i, prop.y);
+        ctx.lineTo(prop.x + i - 18, prop.y + prop.h);
+        ctx.stroke();
+      }
+    } else if (prop.type === 'antenna') {
+      ctx.strokeStyle = scenario.palette.accent;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(prop.x, prop.y);
+      ctx.lineTo(prop.x, prop.y + prop.h);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(prop.x, prop.y, 18, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (prop.type === 'reactor') {
+      ctx.fillStyle = `${scenario.palette.hazard}44`;
+      ctx.strokeStyle = scenario.palette.hazard;
+      ctx.beginPath();
+      ctx.arc(prop.x, prop.y, prop.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    } else if (prop.type === 'crystal') {
+      ctx.fillStyle = `${scenario.palette.accent}55`;
+      ctx.beginPath();
+      ctx.moveTo(prop.x, prop.y - prop.r);
+      ctx.lineTo(prop.x + prop.r * 0.7, prop.y);
+      ctx.lineTo(prop.x, prop.y + prop.r);
+      ctx.lineTo(prop.x - prop.r * 0.7, prop.y);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  });
 }
 
 function drawNodes() {
