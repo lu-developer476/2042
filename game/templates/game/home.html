@@ -2,16 +2,8 @@
 {% load static %}
 {% block title %}2042: Tower Defense{% endblock %}
 {% block content %}
-<section class="hero-panel">
-  <div>
-    <p class="eyebrow" data-i18n="heroEyebrow">Defensa táctica futurista</p>
-    <h1 data-i18n="heroTitle">Protegé el núcleo. Resist&iacute; hasta el colapso de la oleada final.</h1>
-    <p class="hero-copy" data-i18n="heroCopy">
-      Colocá torres en nodos predefinidos, mejoralas hasta nivel 5 y detené drones, tanques mecánicos y señales fantasma.
-      La Burst Tower dispara ráfagas de 5 tiros, porque 3 era para tibios.
-    </p>
-  </div>
-  <div class="hero-sidecard">
+<section class="setup-panel" aria-label="Configuración de partida">
+  <div class="setup-fields">
     <label class="label" for="player-name" data-i18n="pilotName">Nombre del piloto</label>
     <input id="player-name" class="input" type="text" maxlength="30" placeholder="Ej: Lu" data-i18n-placeholder="pilotPlaceholder" />
     <div>
@@ -74,21 +66,18 @@
   </div>
 
   <aside class="sidebar">
-    <section class="card">
-      <h2 data-i18n="towers">Torres</h2>
+    <section class="card" aria-label="Torres">
       <div id="tower-shop" class="tower-shop"></div>
       <p class="microcopy" data-i18n="shopHelp">Click en un nodo libre para construir la torre seleccionada.</p>
     </section>
 
-    <section class="card">
-      <h2 data-i18n="selectedTower">Torre seleccionada</h2>
+    <section class="card" aria-label="Torre seleccionada">
       <div id="selected-tower-panel" class="selected-tower-panel">
         <p class="microcopy" data-i18n="selectedHelp">Seleccioná una torre ya construida para ver stats, nivel y mejora siguiente.</p>
       </div>
     </section>
 
-    <section class="card">
-      <h2>Top 10</h2>
+    <section class="card leaderboard-card" aria-label="Top 10">
       <div id="leaderboard-list" class="leaderboard-list">
         {% for entry in top_entries %}
           <div class="leaderboard-row">
