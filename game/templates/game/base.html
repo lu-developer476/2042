@@ -13,25 +13,46 @@
   {% block extra_css %}{% endblock %}
 </head>
 <body>
-  <div class="page-shell">
-    <header class="topbar">
+  <div class="app-shell">
+    <nav class="navbar" aria-label="Navegación principal">
       <a class="brand" href="{% url 'home' %}">
         <span class="brand-kicker" data-i18n="brandKicker">SECTOR CORE //</span>
         <span class="brand-title">2042: Tower Defense</span>
       </a>
-      <div class="topbar-actions">
-        <nav class="nav-links" aria-label="Principal">
+      <div class="navbar-links">
+        <a href="{% url 'home' %}" data-i18n="navPlay">Jugar</a>
+        <a href="{% url 'leaderboard' %}" data-i18n="navLeaderboard">Ranking</a>
+        <a href="/admin/" data-i18n="navAdmin">Admin</a>
+      </div>
+      <div class="preference-actions" aria-label="Preferencias">
+        <button id="language-toggle" class="button ghost utility-button" type="button" aria-label="Cambiar idioma">🇪🇸/🇺🇸</button>
+        <button id="theme-toggle" class="button ghost utility-button" type="button" data-i18n="themeToggle">Modo oscuro/Modo claro</button>
+      </div>
+    </nav>
+
+    <div class="workspace">
+      <aside class="app-sidebar" aria-label="Panel de estado">
+        <div class="sidebar-badge">LIVE</div>
+        <div class="side-card">
+          <span class="side-label">Estado</span>
+          <strong>Defensa activa</strong>
+          <p>Monitoreo de oleadas, score y recursos en una cabina sin scroll.</p>
+        </div>
+        <div class="side-nav">
           <a href="{% url 'home' %}" data-i18n="navPlay">Jugar</a>
           <a href="{% url 'leaderboard' %}" data-i18n="navLeaderboard">Ranking</a>
           <a href="/admin/" data-i18n="navAdmin">Admin</a>
-        </nav>
-        <div class="preference-actions" aria-label="Preferencias">
-          <button id="language-toggle" class="button ghost utility-button" type="button" aria-label="Cambiar idioma">🇪🇸/🇺🇸</button>
-          <button id="theme-toggle" class="button ghost utility-button" type="button" data-i18n="themeToggle">Modo oscuro/Modo claro</button>
         </div>
-      </div>
-    </header>
-    {% block content %}{% endblock %}
+        <div class="side-metric">
+          <span>Sector</span>
+          <strong>2042-A</strong>
+        </div>
+      </aside>
+
+      <main class="page-shell">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
   </div>
   <script src="{% static 'game/js/preferences.js' %}"></script>
   {% block extra_js %}{% endblock %}
