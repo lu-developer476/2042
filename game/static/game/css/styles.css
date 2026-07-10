@@ -118,10 +118,13 @@ button, input { font: inherit; }
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(8px, 1vw, 12px);
 }
 
 .setup-panel {
-  margin-bottom: 10px;
+  margin-bottom: 0;
 }
 
 .setup-panel,
@@ -136,22 +139,22 @@ button, input { font: inherit; }
 
 .setup-panel,
 .card,
-.game-panel { padding: clamp(12px, 1.5vw, 22px); }
+.game-panel { padding: clamp(10px, 1.2vw, 16px); }
 
 .setup-fields {
   display: grid;
-  grid-template-columns: minmax(150px, 0.6fr) minmax(250px, 1.2fr) auto auto;
+  grid-template-columns: minmax(130px, 0.55fr) minmax(220px, 1.1fr) minmax(360px, 1.4fr) auto;
   gap: 10px;
   align-items: end;
 }
-.setup-fields .microcopy { margin: 0; align-self: center; }
-.scenario-picker { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
-.scenario-chip { padding: 9px 8px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,0.06); color: var(--muted); cursor: pointer; font-size: 0.78rem; font-weight: 800; }
+.setup-fields .microcopy { margin: 0; align-self: center; font-size: 0.86rem; line-height: 1.35; }
+.scenario-picker { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 6px; }
+.scenario-chip { padding: 8px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,0.06); color: var(--muted); cursor: pointer; font-size: 0.76rem; font-weight: 800; }
 .scenario-chip.active { color: #06101b; background: linear-gradient(135deg, var(--cyan), var(--violet)); }
 .label { color: var(--muted); font-size: 0.92rem; }
 .input {
   width: 100%;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border-radius: 14px;
   border: 1px solid var(--line-strong);
   background: rgba(5, 10, 18, 0.9);
@@ -159,10 +162,18 @@ button, input { font: inherit; }
 }
 
 .content-grid {
+  min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(250px, 21vw, 330px);
+  grid-template-columns: minmax(0, 1fr) clamp(240px, 20vw, 310px);
   gap: clamp(10px, 1.2vw, 16px);
-  align-items: start;
+  align-items: stretch;
+}
+
+.game-panel {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  align-content: stretch;
 }
 
 .hud-grid {
@@ -173,13 +184,13 @@ button, input { font: inherit; }
 }
 
 .hud-item {
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: 14px;
   background: rgba(5, 11, 22, 0.88);
   border: 1px solid rgba(109, 242, 255, 0.14);
 }
-.hud-item span { display: block; font-size: 0.86rem; color: var(--muted); margin-bottom: 6px; }
-.hud-item strong { font-size: 1.12rem; font-family: 'Orbitron', sans-serif; }
+.hud-item span { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+.hud-item strong { font-size: 1rem; font-family: 'Orbitron', sans-serif; }
 
 .intel-strip {
   display: grid;
@@ -188,19 +199,21 @@ button, input { font: inherit; }
   margin-bottom: 10px;
 }
 .intel-strip > div {
-  padding: 9px 12px;
+  padding: 8px 10px;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: rgba(5, 11, 22, 0.56);
 }
-.intel-strip span { display: block; color: var(--muted); font-size: 0.78rem; margin-bottom: 5px; }
+.intel-strip span { display: block; color: var(--muted); font-size: 0.74rem; margin-bottom: 4px; }
 .intel-strip strong { font-family: 'Orbitron', sans-serif; }
 
 .battlefield-wrap {
   position: relative;
-  width: min(100%, calc((100vh - 470px) * 16 / 9));
+  width: min(100%, max(320px, calc((100vh - 430px) * 16 / 9)));
   min-width: min(100%, 320px);
+  max-height: 100%;
   margin: 0 auto;
+  aspect-ratio: 16 / 9;
   border-radius: clamp(14px, 2vw, 24px);
   overflow: hidden;
   border: 1px solid var(--line-strong);
@@ -209,9 +222,8 @@ button, input { font: inherit; }
 
 #battlefield {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
-  aspect-ratio: 16 / 9;
 }
 
 .overlay-message {
@@ -252,7 +264,7 @@ button, input { font: inherit; }
 .button.ability { background: linear-gradient(135deg, rgba(140,120,255,0.9), rgba(109,242,255,0.9)); color: #06101b; }
 .button.small { width: 100%; padding: 10px 12px; margin-top: 12px; }
 
-.sidebar { display: grid; gap: clamp(10px, 1.1vw, 14px); min-height: 0; }
+.sidebar { display: grid; gap: clamp(10px, 1.1vw, 14px); min-height: 0; align-content: start; overflow-y: auto; padding-right: 2px; }
 .card h2 { font-family: 'Orbitron', sans-serif; margin-top: 0; }
 .microcopy { color: var(--muted); font-size: 0.92rem; line-height: 1.6; }
 
@@ -296,7 +308,7 @@ td { color: var(--muted); }
   .content-grid { grid-template-columns: minmax(0, 1fr) minmax(220px, 280px); }
   .setup-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hud-grid { grid-template-columns: repeat(5, minmax(84px, 1fr)); }
-  .battlefield-wrap { width: min(100%, calc((100vh - 510px) * 16 / 9)); }
+  .battlefield-wrap { width: min(100%, max(300px, calc((100vh - 470px) * 16 / 9))); }
   .sidebar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .leaderboard-card { grid-column: 1 / -1; }
 }
