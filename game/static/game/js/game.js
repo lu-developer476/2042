@@ -297,7 +297,7 @@ class Enemy {
 
 class Tower {
   constructor(typeKey, node) {
-    this.id = crypto.randomUUID();
+    this.id = getUniqueId();
     this.typeKey = typeKey;
     this.type = towerTypes[typeKey];
     this.nodeId = node.id;
@@ -381,12 +381,12 @@ class Tower {
     ctx.save();
     ctx.beginPath();
     ctx.fillStyle = this.type.color;
-    ctx.arc(this.x, this.y, this.type.radius, 0, Math.PI * 2);
+    ctx.arc(this.x, this.y, 24, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.beginPath();
     ctx.fillStyle = '#08121e';
-    ctx.arc(this.x, this.y, this.type.radius * 0.5, 0, Math.PI * 2);
+    ctx.arc(this.x, this.y, 12, 0, Math.PI * 2);
     ctx.fill();
 
     if (this.id === state.selectedTowerId) {
@@ -501,7 +501,7 @@ class Projectile {
       this.target.hp -= appliedDamage;
       createFloatingText(this.target.x, this.target.y - 12, `-${appliedDamage}`, this.isShock ? '#ffd166' : '#ffffff');
       if (this.isShock) {
-        this.target.speed = this.target.baseSpeed * (1 - 0.2);
+        this.target.speed = this.target.baseSpeed * (1 - (this.slow || 0.2));
         this.target.slowTimer = 0.7;
       }
       if (this.target.hp <= 0) {
@@ -529,7 +529,14 @@ class Projectile {
 
 function fireProjectile(tower, target, damage, isShock = false) {
   const critChance = tower.typeKey === 'burst' && tower.level === 5 ? tower.critChance || 0 : 0;
-  state.projectiles.push(new Projectile(tower.x, tower.y, target, damage, isShock, critChance));
+  const projectile = new Projectile(tower.x, tower.y, target, damage, isShock, critChance);
+  projectile.slow = tower.slow || 0;
+  state.projectiles.push(projectile);
+}
+
+function getUniqueId() {
+  if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+  return `tower-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 function createFloatingText(x, y, text, color = '#ffffff') {
@@ -1006,7 +1013,7 @@ function handleCanvasClick(event) {
   if (!state.started || state.gameOver) return;
   const { x, y } = getCanvasCoordinates(event);
 
-  const clickedTower = state.towers.find((tower) => Math.hypot(tower.x - x, tower.y - y) <= tower.type.radius);
+  const clickedTower = state.towers.find((tower) => Math.hypot(tower.x - x, tower.y - y) <= 30);
   if (clickedTower) {
     state.selectedTowerId = clickedTower.id;
     state.selectedTowerType = null;
@@ -1038,13 +1045,14 @@ startButton.addEventListener('click', startGame);
 nextWaveButton.addEventListener('click', spawnWave);
 speedButton.addEventListener('click', () => {
   state.speedMultiplier = state.speedMultiplier === 1 ? 2 : 1;
+  speedButton.textContent = state.speedMultiplier === 1 ? 'Velocidad x2' : 'Velocidad x1';
   updateHud();
 });
 empButton.addEventListener('click', () => {
   if (empButton.disabled) return;
   state.credits -= 160;
   state.enemies.forEach((enemy) => { enemy.hp -= 45; enemy.speed = enemy.baseSpeed * 0.45; enemy.slowTimer = 2.5; });
-  state.enemies.filter((enemy) => enemy.hp <= 0).forEach(destroyEnemy);
+  [...state.enemies].filter((enemy) => enemy.hp <= 0).forEach(destroyEnemy);
   createFloatingText(430, 80, 'EMP', '#6df2ff');
   updateHud();
 });
