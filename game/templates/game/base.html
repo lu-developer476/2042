@@ -25,35 +25,20 @@
         <a href="{% url 'leaderboard' %}" data-i18n="navLeaderboard">Ranking</a>
         <a href="/admin/" data-i18n="navAdmin">Admin</a>
       </div>
+      <div class="navbar-status" aria-label="Estado de defensa">
+        <span class="sidebar-badge">LIVE</span>
+        <span><span class="side-label">Estado</span><strong>Defensa activa</strong></span>
+        <span><span class="side-label">Sector</span><strong>2042-A</strong></span>
+      </div>
       <div class="preference-actions" aria-label="Preferencias">
         <button id="language-toggle" class="button ghost utility-button" type="button" aria-label="Cambiar idioma">🇪🇸/🇺🇸</button>
         <button id="theme-toggle" class="button ghost utility-button" type="button" data-i18n="themeToggle">Modo oscuro/Modo claro</button>
       </div>
     </nav>
 
-    <div class="workspace">
-      <aside class="app-sidebar" aria-label="Panel de estado">
-        <div class="sidebar-badge">LIVE</div>
-        <div class="side-card">
-          <span class="side-label">Estado</span>
-          <strong>Defensa activa</strong>
-          <p>Monitoreo de oleadas, score y recursos en una cabina sin scroll.</p>
-        </div>
-        <div class="side-nav">
-          <a href="{% url 'home' %}" data-i18n="navPlay">Jugar</a>
-          <a href="{% url 'leaderboard' %}" data-i18n="navLeaderboard">Ranking</a>
-          <a href="/admin/" data-i18n="navAdmin">Admin</a>
-        </div>
-        <div class="side-metric">
-          <span>Sector</span>
-          <strong>2042-A</strong>
-        </div>
-      </aside>
-
-      <main class="page-shell">
-        {% block content %}{% endblock %}
-      </main>
-    </div>
+    <main class="page-shell">
+      {% block content %}{% endblock %}
+    </main>
   </div>
   <script src="{% static 'game/js/preferences.js' %}"></script>
   {% block extra_js %}{% endblock %}

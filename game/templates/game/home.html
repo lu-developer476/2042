@@ -16,6 +16,33 @@
 </section>
 
 <section class="content-grid">
+  <aside class="sidebar nav-dock" aria-label="Paneles de comando">
+    <section class="card" aria-label="Torres">
+      <div id="tower-shop" class="tower-shop"></div>
+      <p class="microcopy" data-i18n="shopHelp">Click en un nodo libre para construir la torre seleccionada.</p>
+    </section>
+
+    <section class="card" aria-label="Torre seleccionada">
+      <div id="selected-tower-panel" class="selected-tower-panel">
+        <p class="microcopy" data-i18n="selectedHelp">Seleccioná una torre ya construida para ver stats, nivel y mejora siguiente.</p>
+      </div>
+    </section>
+
+    <section class="card leaderboard-card" aria-label="Top 10">
+      <div id="leaderboard-list" class="leaderboard-list">
+        {% for entry in top_entries %}
+          <div class="leaderboard-row">
+            <span>{{ forloop.counter }}. {{ entry.player_name }}</span>
+            <strong>{{ entry.score }}</strong>
+          </div>
+        {% empty %}
+          <p class="microcopy" data-i18n="emptyLeaderboard">Todavía no hay registros. Sé el primero en romper la simulación.</p>
+        {% endfor %}
+      </div>
+      <a class="text-link" href="{% url 'leaderboard' %}" data-i18n="fullLeaderboard">Ver ranking completo</a>
+    </section>
+  </aside>
+
   <div class="game-panel">
     <div class="hud-grid">
       <div class="hud-item"><span>Core HP</span><strong id="hp-value">20</strong></div>
@@ -65,32 +92,6 @@
     </div>
   </div>
 
-  <aside class="sidebar">
-    <section class="card" aria-label="Torres">
-      <div id="tower-shop" class="tower-shop"></div>
-      <p class="microcopy" data-i18n="shopHelp">Click en un nodo libre para construir la torre seleccionada.</p>
-    </section>
-
-    <section class="card" aria-label="Torre seleccionada">
-      <div id="selected-tower-panel" class="selected-tower-panel">
-        <p class="microcopy" data-i18n="selectedHelp">Seleccioná una torre ya construida para ver stats, nivel y mejora siguiente.</p>
-      </div>
-    </section>
-
-    <section class="card leaderboard-card" aria-label="Top 10">
-      <div id="leaderboard-list" class="leaderboard-list">
-        {% for entry in top_entries %}
-          <div class="leaderboard-row">
-            <span>{{ forloop.counter }}. {{ entry.player_name }}</span>
-            <strong>{{ entry.score }}</strong>
-          </div>
-        {% empty %}
-          <p class="microcopy" data-i18n="emptyLeaderboard">Todavía no hay registros. Sé el primero en romper la simulación.</p>
-        {% endfor %}
-      </div>
-      <a class="text-link" href="{% url 'leaderboard' %}" data-i18n="fullLeaderboard">Ver ranking completo</a>
-    </section>
-  </aside>
 </section>
 {% endblock %}
 {% block extra_js %}
