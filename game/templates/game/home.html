@@ -6,31 +6,6 @@
 {% endblock %}
 {% block content %}
 <section class="game-layout" aria-label="Interfaz principal del juego">
-  <div class="game-statusbar" aria-label="Estado de partida">
-    <button class="panel-trigger status-trigger" type="button" data-dialog-target="status-dialog" aria-haspopup="dialog">
-      <span>Estado de defensa</span>
-      <strong><span id="defense-status-inline" aria-live="polite">Inactiva</span> · <span id="hp-value">20</span> HP · <span id="credits-value">300</span>c · <span id="wave-value">0 / 8</span></strong>
-    </button>
-    <dialog id="status-dialog" class="info-dialog">
-      <div class="dialog-card">
-        <button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
-        <h2>Estado de defensa</h2>
-        <div class="hud-grid">
-          <div class="hud-item"><span>Core HP</span><strong id="hp-detail-value">20</strong></div>
-          <div class="hud-item"><span data-i18n="credits">Créditos</span><strong id="credits-detail-value">300</strong></div>
-          <div class="hud-item"><span data-i18n="wave">Oleada</span><strong id="wave-detail-value">0 / 8</strong></div>
-          <div class="hud-item"><span data-i18n="kills">Bajas</span><strong id="kills-value">0</strong></div>
-          <div class="hud-item"><span>Score</span><strong id="score-value">0</strong></div>
-        </div>
-        <div class="intel-strip" aria-live="polite">
-          <div><span data-i18n="nextThreat">Próxima amenaza</span><strong id="wave-preview">--</strong></div>
-          <div><span data-i18n="combo">Combo táctico</span><strong id="combo-value">x1.00</strong></div>
-          <div><span data-i18n="speed">Velocidad</span><strong id="speed-value">1x</strong></div>
-          <div><span>Escenario activo</span><strong id="scenario-value">--</strong></div>
-        </div>
-      </div>
-    </dialog>
-  </div>
   <aside class="sidebar command-sidebar" aria-label="Consola lateral de comando">
     <dialog id="play-dialog" class="info-dialog">
       <section class="card play-dialog-card dialog-card" aria-label="Panel de juego">
