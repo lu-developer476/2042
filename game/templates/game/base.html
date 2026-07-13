@@ -25,11 +25,13 @@
         <a href="{% url 'leaderboard' %}" data-i18n="navLeaderboard">Ranking</a>
         <a href="/admin/" data-i18n="navAdmin">Admin</a>
       </div>
-      <div class="navbar-status" aria-label="Estado de defensa">
-        <span class="sidebar-badge">LIVE</span>
-        <span><span class="side-label">Estado</span><strong>Defensa activa</strong></span>
-        <span><span class="side-label">Sector</span><strong>2042-A</strong></span>
-      </div>
+      <details class="navbar-status-menu">
+        <summary class="navbar-status-trigger" aria-label="Abrir estado de defensa">Estado de defensa</summary>
+        <div class="navbar-status-panel" aria-label="Estado de defensa">
+          <span><span class="side-label">Estado</span><strong>Defensa activa</strong></span>
+          <span><span class="side-label">Sector</span><strong>2042-A</strong></span>
+        </div>
+      </details>
       <div class="preference-actions" aria-label="Preferencias">
         <button id="language-toggle" class="button ghost utility-button" type="button" aria-label="Cambiar idioma">🇪🇸/🇺🇸</button>
         <button id="theme-toggle" class="button ghost utility-button" type="button" data-i18n="themeToggle">Modo oscuro/Modo claro</button>
