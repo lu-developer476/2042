@@ -18,6 +18,8 @@ const speedValue = document.getElementById('speed-value');
 const scenarioValue = document.getElementById('scenario-value');
 const scenarioPicker = document.getElementById('scenario-picker');
 const playDialog = document.getElementById('play-dialog');
+const defenseStatusValue = document.getElementById('defense-status-value');
+const defenseStatusInline = document.getElementById('defense-status-inline');
 
 const hud = {
   hp: document.getElementById('hp-value'),
@@ -627,6 +629,18 @@ function startGame() {
   startButton.disabled = true;
   if (playDialog?.open) playDialog.close();
   renderScenarioPicker();
+  updateHud();
+}
+
+function getDefenseStatusText() {
+  return state.started && !state.paused && !state.gameOver ? 'Activa' : 'Inactiva';
+}
+
+function updateDefenseStatus() {
+  const defenseStatusText = getDefenseStatusText();
+  [defenseStatusValue, defenseStatusInline].forEach((element) => {
+    if (element) element.textContent = defenseStatusText;
+  });
 }
 
 function updateHud() {
@@ -644,6 +658,7 @@ function updateHud() {
   comboValue.textContent = `x${state.combo.toFixed(2)}`;
   speedValue.textContent = `${state.speedMultiplier}x`;
   scenarioValue.textContent = getActiveScenario().name;
+  updateDefenseStatus();
   updateAbilityButtons();
 }
 
@@ -781,6 +796,7 @@ function finishGame(victory) {
   nextWaveButton.disabled = true;
   pauseButton.disabled = true;
   startButton.disabled = false;
+  updateDefenseStatus();
 
   const title = victory ? 'SECTOR ASEGURADO' : 'CORE COLAPSADO';
   const subtitle = victory
@@ -1112,6 +1128,7 @@ pauseButton.addEventListener('click', () => {
   state.paused = !state.paused;
   const dict = window.I18N_2042?.translations[document.documentElement.lang] || window.I18N_2042?.translations.es;
   pauseButton.textContent = state.paused ? dict.resume : dict.pause;
+  updateDefenseStatus();
   if (state.paused) {
     overlayMessage.classList.remove('hidden');
     overlayMessage.innerHTML = 'SIMULACIÓN EN PAUSA';
