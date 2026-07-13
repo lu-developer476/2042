@@ -577,6 +577,29 @@ td { color: var(--muted); }
   font-family: 'Orbitron', sans-serif;
 }
 
+.play-dialog-card {
+  display: grid;
+  gap: 16px;
+}
+
+.play-dialog-section {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.play-dialog-section h3 {
+  margin: 0;
+  color: var(--cyan);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .dialog-close {
   position: absolute;
   top: 12px;
