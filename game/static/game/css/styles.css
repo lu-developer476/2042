@@ -622,13 +622,13 @@ td { color: var(--muted); }
 
 .play-dialog-card {
   display: grid;
-  gap: clamp(10px, 1.4vw, 14px);
+  gap: 10px;
 }
 
 .play-dialog-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(8px, 1.2vw, 10px);
+  gap: 8px;
   align-items: start;
 }
 
@@ -642,18 +642,18 @@ td { color: var(--muted); }
 }
 
 .play-popover {
-  min-height: 88px;
+  min-height: 70px;
   padding: 0;
   overflow: hidden;
   transition: border-color 160ms ease, background 160ms ease;
 }
 
 .play-popover-trigger {
-  min-height: 88px;
+  min-height: 70px;
   display: grid;
   align-content: center;
   gap: 4px;
-  padding: 12px 14px;
+  padding: 9px 12px;
   border-radius: 18px;
   cursor: pointer;
   list-style: none;
@@ -669,7 +669,7 @@ td { color: var(--muted); }
 
 .play-popover-trigger span {
   color: var(--muted);
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -678,7 +678,7 @@ td { color: var(--muted); }
 .play-popover-trigger strong {
   color: var(--text);
   font-family: 'Orbitron', sans-serif;
-  font-size: clamp(0.92rem, 1.5vw, 1.08rem);
+  font-size: clamp(0.86rem, 1.25vw, 1rem);
 }
 
 .play-popover[open] {
@@ -697,16 +697,16 @@ td { color: var(--muted); }
 
 .play-popover-panel {
   display: none;
-  gap: 10px;
+  gap: 8px;
   position: fixed;
   top: 50%;
   left: 50%;
   z-index: 45;
-  width: min(88vw, 500px);
-  max-height: min(68svh, 500px);
+  width: min(86vw, 480px);
+  max-height: min(64svh, 480px);
   overflow: auto;
   margin: 0;
-  padding: clamp(12px, 1.8vw, 18px);
+  padding: 14px 16px;
   border: 1px solid var(--line-strong);
   border-radius: 18px;
   background: rgba(5, 10, 20, 0.96);
@@ -757,6 +757,73 @@ td { color: var(--muted); }
 .info-dialog .scenario-picker,
 .info-dialog .leaderboard-list {
   grid-template-columns: 1fr;
+}
+
+.info-dialog .setup-fields,
+.info-dialog .tower-shop,
+.info-dialog .selected-tower-panel {
+  gap: 8px;
+}
+
+.info-dialog .scenario-picker {
+  gap: 6px;
+  margin-top: 5px;
+}
+
+.info-dialog .scenario-chip {
+  min-height: 34px;
+  padding: 7px 10px;
+  text-align: center;
+}
+
+.info-dialog .input {
+  padding: 10px 12px;
+}
+
+.info-dialog .controls-row,
+.info-dialog .ability-row {
+  display: grid;
+  gap: 8px;
+  margin-top: 0;
+}
+
+.info-dialog .ability-row {
+  margin-top: 8px;
+}
+
+.info-dialog .button {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  line-height: 1.15;
+}
+
+.info-dialog .tower-card {
+  width: 100%;
+  padding: 8px 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.info-dialog .tower-card h3 {
+  margin-bottom: 3px;
+  font-size: 0.88rem;
+  line-height: 1.2;
+}
+
+.info-dialog .tower-card p,
+.info-dialog .tower-card ul,
+.info-dialog .microcopy {
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.info-dialog .tower-card ul {
+  display: grid;
+  gap: 2px;
+  padding-left: 0;
+  margin-top: 5px;
+  list-style: none;
 }
 
 @media (max-width: 960px) {
