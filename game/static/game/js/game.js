@@ -21,6 +21,56 @@ const playDialog = document.getElementById('play-dialog');
 const defenseStatusValue = document.getElementById('defense-status-value');
 const defenseStatusPanelValue = document.getElementById('defense-status-panel-value');
 
+const soundEngine = {
+  context: null,
+  enabled: true,
+  init() {
+    if (!this.enabled) return null;
+    if (!this.context) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) {
+        this.enabled = false;
+        return null;
+      }
+      this.context = new AudioContext();
+    }
+    if (this.context.state === 'suspended') this.context.resume();
+    return this.context;
+  },
+  tone(frequency, duration = 0.08, type = 'sine', volume = 0.04, delay = 0) {
+    const audio = this.init();
+    if (!audio) return;
+    const start = audio.currentTime + delay;
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, start);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    oscillator.connect(gain);
+    gain.connect(audio.destination);
+    oscillator.start(start);
+    oscillator.stop(start + duration + 0.02);
+  },
+  play(name) {
+    const patterns = {
+      ui: [[520, 0.05, 'triangle', 0.025]],
+      start: [[320, 0.08, 'sawtooth', 0.035], [520, 0.1, 'triangle', 0.035, 0.06]],
+      wave: [[180, 0.08, 'sawtooth', 0.04], [260, 0.11, 'sawtooth', 0.035, 0.07]],
+      build: [[620, 0.06, 'square', 0.03], [840, 0.08, 'triangle', 0.025, 0.04]],
+      hit: [[140, 0.09, 'sawtooth', 0.035]],
+      kill: [[700, 0.05, 'triangle', 0.035], [960, 0.08, 'sine', 0.03, 0.04]],
+      ability: [[260, 0.08, 'square', 0.035], [520, 0.12, 'triangle', 0.032, 0.05]],
+      fail: [[120, 0.12, 'sawtooth', 0.035]],
+      end: [[180, 0.18, 'sawtooth', 0.035], [90, 0.24, 'sine', 0.03, 0.12]],
+    };
+    (patterns[name] || patterns.ui).forEach(([frequency, duration, type, volume, delay = 0]) => {
+      this.tone(frequency, duration, type, volume, delay);
+    });
+  },
+};
+
 const hud = {
   hp: document.getElementById('hp-value'),
   hpDetail: document.getElementById('hp-detail-value'),
@@ -35,6 +85,7 @@ const hud = {
 function initInfoDialogs() {
   document.querySelectorAll('[data-dialog-target]').forEach((trigger) => {
     trigger.addEventListener('click', () => {
+      soundEngine.play('ui');
       const dialog = document.getElementById(trigger.dataset.dialogTarget);
       if (!dialog) return;
       if (typeof dialog.showModal === 'function') {
@@ -303,6 +354,7 @@ class Enemy {
     const next = this.path[this.pathIndex + 1];
     if (!next) {
       state.hp -= this.damage;
+      soundEngine.play('hit');
       createFloatingText(this.x - 6, this.y - 20, `-${this.damage} CORE`, '#ff7ca7');
       return false;
     }
@@ -583,6 +635,7 @@ function createFloatingText(x, y, text, color = '#ffffff') {
 }
 
 function destroyEnemy(enemy) {
+  soundEngine.play('kill');
   state.enemies = state.enemies.filter((entry) => entry !== enemy);
   state.credits += enemy.reward;
   state.kills += 1;
@@ -630,6 +683,7 @@ function resetState() {
 }
 
 function startGame() {
+  soundEngine.play('start');
   state.started = true;
   state.playerName = playerNameInput.value.trim() || 'Piloto Anónimo';
   overlayMessage.classList.add('hidden');
@@ -761,6 +815,7 @@ function updateAbilityButtons() {
 
 function spawnWave() {
   if (!state.started || state.waveInProgress || state.currentWaveIndex + 1 >= wavePlan.length || state.gameOver) return;
+  soundEngine.play('wave');
   state.currentWaveIndex += 1;
   const queue = [...wavePlan[state.currentWaveIndex]];
   state.pendingSpawn = { queue, timer: 0.6, routeCursor: 0 };
@@ -807,6 +862,7 @@ function finishGame(victory) {
   startButton.disabled = false;
   updateDefenseStatus();
 
+  soundEngine.play(victory ? 'start' : 'end');
   const title = victory ? 'SECTOR ASEGURADO' : 'CORE COLAPSADO';
   const subtitle = victory
     ? `Sobreviviste a las ${state.totalWaves} oleadas.`
@@ -1087,6 +1143,7 @@ function handleCanvasClick(event) {
 
   const towerType = towerTypes[state.selectedTowerType];
   if (state.credits < towerType.cost) {
+    soundEngine.play('fail');
     createFloatingText(node.x - 15, node.y - 34, 'SIN CRÉDITOS', '#ff7ca7');
     return;
   }
@@ -1094,6 +1151,7 @@ function handleCanvasClick(event) {
   state.credits -= towerType.cost;
   const tower = new Tower(state.selectedTowerType, node);
   node.occupied = tower.id;
+  soundEngine.play('build');
   state.towers.push(tower);
   state.selectedTowerId = tower.id;
   updateHud();
@@ -1104,12 +1162,14 @@ function handleCanvasClick(event) {
 startButton.addEventListener('click', startGame);
 nextWaveButton.addEventListener('click', spawnWave);
 speedButton.addEventListener('click', () => {
+  soundEngine.play('ui');
   state.speedMultiplier = state.speedMultiplier === 1 ? 2 : 1;
   speedButton.textContent = state.speedMultiplier === 1 ? 'Velocidad x2' : 'Velocidad x1';
   updateHud();
 });
 empButton.addEventListener('click', () => {
   if (empButton.disabled) return;
+  soundEngine.play('ability');
   state.credits -= 160;
   state.enemies.forEach((enemy) => { enemy.hp -= 45; enemy.speed = enemy.baseSpeed * 0.45; enemy.slowTimer = 2.5; });
   [...state.enemies].filter((enemy) => enemy.hp <= 0).forEach(destroyEnemy);
@@ -1118,6 +1178,7 @@ empButton.addEventListener('click', () => {
 });
 repairButton.addEventListener('click', () => {
   if (repairButton.disabled) return;
+  soundEngine.play('ability');
   state.credits -= 120;
   state.hp = Math.min(20, state.hp + 5);
   createFloatingText(865, 420, '+5 CORE', '#6cff95');
@@ -1127,6 +1188,7 @@ overclockButton.addEventListener('click', () => {
   if (overclockButton.disabled) return;
   const tower = state.towers.find((entry) => entry.id === state.selectedTowerId);
   if (!tower) return;
+  soundEngine.play('ability');
   state.credits -= 90;
   tower.overclockTimer = 8;
   createFloatingText(tower.x - 22, tower.y - 45, 'OVERCLOCK', '#ffc869');
@@ -1134,6 +1196,7 @@ overclockButton.addEventListener('click', () => {
 });
 pauseButton.addEventListener('click', () => {
   if (!state.started || state.gameOver) return;
+  soundEngine.play('ui');
   state.paused = !state.paused;
   const dict = window.I18N_2042?.translations[document.documentElement.lang] || window.I18N_2042?.translations.es;
   pauseButton.textContent = state.paused ? dict.resume : dict.pause;
@@ -1146,6 +1209,7 @@ pauseButton.addEventListener('click', () => {
   }
 });
 restartButton.addEventListener('click', () => {
+  soundEngine.play('ui');
   startButton.disabled = false;
   resetState();
 });
