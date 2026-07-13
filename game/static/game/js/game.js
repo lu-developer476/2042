@@ -52,6 +52,15 @@ function initInfoDialogs() {
       }
     });
   });
+
+  document.querySelectorAll('.play-popover').forEach((popover) => {
+    popover.addEventListener('toggle', () => {
+      if (!popover.open) return;
+      document.querySelectorAll('.play-popover[open]').forEach((openPopover) => {
+        if (openPopover !== popover) openPopover.open = false;
+      });
+    });
+  });
 }
 
 initInfoDialogs();
