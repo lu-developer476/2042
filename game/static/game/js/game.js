@@ -19,7 +19,7 @@ const scenarioValue = document.getElementById('scenario-value');
 const scenarioPicker = document.getElementById('scenario-picker');
 const playDialog = document.getElementById('play-dialog');
 const defenseStatusValue = document.getElementById('defense-status-value');
-const defenseStatusInline = document.getElementById('defense-status-inline');
+const defenseStatusPanelValue = document.getElementById('defense-status-panel-value');
 
 const hud = {
   hp: document.getElementById('hp-value'),
@@ -638,7 +638,7 @@ function getDefenseStatusText() {
 
 function updateDefenseStatus() {
   const defenseStatusText = getDefenseStatusText();
-  [defenseStatusValue, defenseStatusInline].forEach((element) => {
+  [defenseStatusValue, defenseStatusPanelValue].forEach((element) => {
     if (element) element.textContent = defenseStatusText;
   });
 }

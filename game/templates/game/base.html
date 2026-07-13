@@ -26,9 +26,21 @@
         <a href="/admin/" data-i18n="navAdmin">Admin</a>
       </div>
       <details class="navbar-status-menu">
-        <summary class="navbar-status-trigger" aria-label="Abrir estado de defensa">Estado de defensa</summary>
+        <summary class="navbar-status-trigger" aria-label="Abrir estado de defensa">
+          <span>Estado de defensa</span>
+          <strong><span id="defense-status-value" aria-live="polite">Inactiva</span> · <span id="hp-value">20</span> HP · <span id="credits-value">300</span>c · <span id="wave-value">0 / 8</span></strong>
+        </summary>
         <div class="navbar-status-panel" aria-label="Estado de defensa">
-          <span><strong id="defense-status-value" aria-live="polite">Inactiva</strong></span>
+          <span><span class="side-label">Estado</span><strong id="defense-status-panel-value" aria-live="polite">Inactiva</strong></span>
+          <span><span class="side-label">Core HP</span><strong id="hp-detail-value">20</strong></span>
+          <span><span class="side-label">Créditos</span><strong id="credits-detail-value">300</strong></span>
+          <span><span class="side-label">Oleada</span><strong id="wave-detail-value">0 / 8</strong></span>
+          <span><span class="side-label" data-i18n="kills">Bajas</span><strong id="kills-value">0</strong></span>
+          <span><span class="side-label">Score</span><strong id="score-value">0</strong></span>
+          <span><span class="side-label" data-i18n="nextThreat">Próxima amenaza</span><strong id="wave-preview">--</strong></span>
+          <span><span class="side-label" data-i18n="combo">Combo táctico</span><strong id="combo-value">x1.00</strong></span>
+          <span><span class="side-label" data-i18n="speed">Velocidad</span><strong id="speed-value">1x</strong></span>
+          <span><span class="side-label">Escenario activo</span><strong id="scenario-value">--</strong></span>
           <span><span class="side-label">Sector</span><strong>2042-A</strong></span>
         </div>
       </details>
