@@ -20,11 +20,38 @@ const scenarioPicker = document.getElementById('scenario-picker');
 
 const hud = {
   hp: document.getElementById('hp-value'),
+  hpDetail: document.getElementById('hp-detail-value'),
   credits: document.getElementById('credits-value'),
+  creditsDetail: document.getElementById('credits-detail-value'),
   wave: document.getElementById('wave-value'),
+  waveDetail: document.getElementById('wave-detail-value'),
   kills: document.getElementById('kills-value'),
   score: document.getElementById('score-value'),
 };
+
+function initInfoDialogs() {
+  document.querySelectorAll('[data-dialog-target]').forEach((trigger) => {
+    trigger.addEventListener('click', () => {
+      const dialog = document.getElementById(trigger.dataset.dialogTarget);
+      if (!dialog) return;
+      if (typeof dialog.showModal === 'function') {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute('open', '');
+      }
+    });
+  });
+
+  document.querySelectorAll('.info-dialog').forEach((dialog) => {
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog || event.target.closest('[data-dialog-close]')) {
+        dialog.close();
+      }
+    });
+  });
+}
+
+initInfoDialogs();
 
 const scenarios = [
   {
@@ -601,9 +628,15 @@ function startGame() {
 }
 
 function updateHud() {
-  hud.hp.textContent = Math.max(state.hp, 0);
-  hud.credits.textContent = state.credits;
-  hud.wave.textContent = `${Math.max(state.currentWaveIndex + (state.waveInProgress ? 1 : 0), 0)} / ${state.totalWaves}`;
+  const hpText = Math.max(state.hp, 0);
+  const creditsText = state.credits;
+  const waveText = `${Math.max(state.currentWaveIndex + (state.waveInProgress ? 1 : 0), 0)} / ${state.totalWaves}`;
+  hud.hp.textContent = hpText;
+  hud.hpDetail.textContent = hpText;
+  hud.credits.textContent = creditsText;
+  hud.creditsDetail.textContent = creditsText;
+  hud.wave.textContent = waveText;
+  hud.waveDetail.textContent = waveText;
   hud.kills.textContent = state.kills;
   hud.score.textContent = state.score;
   comboValue.textContent = `x${state.combo.toFixed(2)}`;
