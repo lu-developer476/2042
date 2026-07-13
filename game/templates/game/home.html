@@ -2,48 +2,8 @@
 {% load static %}
 {% block title %}Tower Defense{% endblock %}
 {% block content %}
-<section class="setup-panel" aria-label="Configuración de partida">
-  <div class="setup-fields">
-    <label class="label" for="player-name" data-i18n="pilotName">Nombre del piloto</label>
-    <input id="player-name" class="input" type="text" maxlength="30" placeholder="Ej: Lu" data-i18n-placeholder="pilotPlaceholder" />
-    <div>
-      <label class="label">Escenario</label>
-      <div id="scenario-picker" class="scenario-picker"></div>
-    </div>
-    <button id="start-game" class="button primary" data-i18n="startSimulation">Iniciar simulación</button>
-    <p class="microcopy" data-i18n="loginCopy">No requiere login. El ranking guarda nombre, score, oleadas y bajas.</p>
-  </div>
-</section>
-
-<section class="content-grid">
-  <aside class="sidebar nav-dock" aria-label="Paneles de comando">
-    <section class="card" aria-label="Torres">
-      <div id="tower-shop" class="tower-shop"></div>
-      <p class="microcopy" data-i18n="shopHelp">Click en un nodo libre para construir la torre seleccionada.</p>
-    </section>
-
-    <section class="card" aria-label="Torre seleccionada">
-      <div id="selected-tower-panel" class="selected-tower-panel">
-        <p class="microcopy" data-i18n="selectedHelp">Seleccioná una torre ya construida para ver stats, nivel y mejora siguiente.</p>
-      </div>
-    </section>
-
-    <section class="card leaderboard-card" aria-label="Top 10">
-      <div id="leaderboard-list" class="leaderboard-list">
-        {% for entry in top_entries %}
-          <div class="leaderboard-row">
-            <span>{{ forloop.counter }}. {{ entry.player_name }}</span>
-            <strong>{{ entry.score }}</strong>
-          </div>
-        {% empty %}
-          <p class="microcopy" data-i18n="emptyLeaderboard">Todavía no hay registros. Sé el primero en romper la simulación.</p>
-        {% endfor %}
-      </div>
-      <a class="text-link" href="{% url 'leaderboard' %}" data-i18n="fullLeaderboard">Ver ranking completo</a>
-    </section>
-  </aside>
-
-  <div class="game-panel">
+<section class="game-layout" aria-label="Interfaz principal del juego">
+  <div class="game-statusbar" aria-label="Estado de partida">
     <div class="hud-grid">
       <div class="hud-item"><span>Core HP</span><strong id="hp-value">20</strong></div>
       <div class="hud-item"><span data-i18n="credits">Créditos</span><strong id="credits-value">300</strong></div>
@@ -51,9 +11,6 @@
       <div class="hud-item"><span data-i18n="kills">Bajas</span><strong id="kills-value">0</strong></div>
       <div class="hud-item"><span>Score</span><strong id="score-value">0</strong></div>
     </div>
-
-
-
     <div class="intel-strip" aria-live="polite">
       <div>
         <span data-i18n="nextThreat">Próxima amenaza</span>
@@ -72,26 +29,68 @@
         <strong id="scenario-value">--</strong>
       </div>
     </div>
+  </div>
+  <aside class="sidebar command-sidebar" aria-label="Consola lateral de comando">
+    <section class="card setup-card" aria-label="Configuración de partida">
+      <div class="setup-fields">
+        <label class="label" for="player-name" data-i18n="pilotName">Nombre del piloto</label>
+        <input id="player-name" class="input" type="text" maxlength="30" placeholder="Ej: Lu" data-i18n-placeholder="pilotPlaceholder" />
+        <div>
+          <label class="label">Escenario</label>
+          <div id="scenario-picker" class="scenario-picker"></div>
+        </div>
+        <button id="start-game" class="button primary" data-i18n="startSimulation">Iniciar simulación</button>
+        <p class="microcopy" data-i18n="loginCopy">No requiere login. El ranking guarda nombre, score, oleadas y bajas.</p>
+      </div>
+    </section>
 
+    <section class="card" aria-label="Torres">
+      <div id="tower-shop" class="tower-shop"></div>
+      <p class="microcopy" data-i18n="shopHelp">Click en un nodo libre para construir la torre seleccionada.</p>
+    </section>
+
+    <section class="card" aria-label="Torre seleccionada">
+      <div id="selected-tower-panel" class="selected-tower-panel">
+        <p class="microcopy" data-i18n="selectedHelp">Seleccioná una torre ya construida para ver stats, nivel y mejora siguiente.</p>
+      </div>
+    </section>
+
+    <section class="card controls-card" aria-label="Controles de partida">
+      <div class="controls-row">
+        <button id="next-wave" class="button primary" disabled data-i18n="startWave">Iniciar oleada</button>
+        <button id="pause-game" class="button ghost" disabled data-i18n="pause">Pausar</button>
+        <button id="restart-game" class="button danger" data-i18n="restart">Reiniciar</button>
+        <button id="speed-toggle" class="button ghost" data-i18n="speedToggle">Velocidad x2</button>
+      </div>
+
+      <div class="ability-row">
+        <button id="emp-ability" class="button ability" disabled data-i18n="empAbility">EMP global (160c)</button>
+        <button id="repair-ability" class="button ability" disabled data-i18n="repairAbility">Reparar core (120c)</button>
+        <button id="overclock-ability" class="button ability" disabled data-i18n="overclockAbility">Overclock torre (90c)</button>
+      </div>
+    </section>
+
+    <section class="card leaderboard-card" aria-label="Top 10">
+      <div id="leaderboard-list" class="leaderboard-list">
+        {% for entry in top_entries %}
+          <div class="leaderboard-row">
+            <span>{{ forloop.counter }}. {{ entry.player_name }}</span>
+            <strong>{{ entry.score }}</strong>
+          </div>
+        {% empty %}
+          <p class="microcopy" data-i18n="emptyLeaderboard">Todavía no hay registros. Sé el primero en romper la simulación.</p>
+        {% endfor %}
+      </div>
+      <a class="text-link" href="{% url 'leaderboard' %}" data-i18n="fullLeaderboard">Ver ranking completo</a>
+    </section>
+  </aside>
+
+  <section class="game-panel board-only" aria-label="Tablero de juego">
     <div class="battlefield-wrap">
       <canvas id="battlefield" width="960" height="540"></canvas>
       <div id="overlay-message" class="overlay-message hidden"></div>
     </div>
-
-    <div class="controls-row">
-      <button id="next-wave" class="button primary" disabled data-i18n="startWave">Iniciar oleada</button>
-      <button id="pause-game" class="button ghost" disabled data-i18n="pause">Pausar</button>
-      <button id="restart-game" class="button danger" data-i18n="restart">Reiniciar</button>
-      <button id="speed-toggle" class="button ghost" data-i18n="speedToggle">Velocidad x2</button>
-    </div>
-
-    <div class="ability-row">
-      <button id="emp-ability" class="button ability" disabled data-i18n="empAbility">EMP global (160c)</button>
-      <button id="repair-ability" class="button ability" disabled data-i18n="repairAbility">Reparar core (120c)</button>
-      <button id="overclock-ability" class="button ability" disabled data-i18n="overclockAbility">Overclock torre (90c)</button>
-    </div>
-  </div>
-
+  </section>
 </section>
 {% endblock %}
 {% block extra_js %}
