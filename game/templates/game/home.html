@@ -29,63 +29,56 @@
     </dialog>
   </div>
   <aside class="sidebar command-sidebar" aria-label="Consola lateral de comando">
-    <button class="panel-trigger" type="button" data-dialog-target="setup-dialog" aria-haspopup="dialog">Configurar partida</button>
-    <dialog id="setup-dialog" class="info-dialog"><section class="card setup-card dialog-card" aria-label="Configuración de partida"><button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
-      <div class="setup-fields">
-        <label class="label" for="player-name" data-i18n="pilotName">Nombre del piloto</label>
-        <input id="player-name" class="input" type="text" maxlength="30" placeholder="Ej: Lu" data-i18n-placeholder="pilotPlaceholder" />
-        <div>
-          <label class="label">Escenario</label>
-          <div id="scenario-picker" class="scenario-picker"></div>
-        </div>
-        <button id="start-game" class="button primary" data-i18n="startSimulation">Iniciar simulación</button>
-        <p class="microcopy" data-i18n="loginCopy">No requiere login. El ranking guarda nombre, score, oleadas y bajas.</p>
-      </div>
-    </section></dialog>
+    <button class="panel-trigger" type="button" data-dialog-target="play-dialog" aria-haspopup="dialog">Jugar</button>
+    <dialog id="play-dialog" class="info-dialog">
+      <section class="card play-dialog-card dialog-card" aria-label="Panel de juego">
+        <button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
+        <h2>Jugar</h2>
 
-    <button class="panel-trigger" type="button" data-dialog-target="towers-dialog" aria-haspopup="dialog">Torres</button>
-    <dialog id="towers-dialog" class="info-dialog"><section class="card dialog-card" aria-label="Torres"><button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
-      <div id="tower-shop" class="tower-shop"></div>
-      <p class="microcopy" data-i18n="shopHelp">Click en un nodo libre para construir la torre seleccionada.</p>
-    </section></dialog>
-
-    <button class="panel-trigger" type="button" data-dialog-target="selected-dialog" aria-haspopup="dialog">Torre seleccionada</button>
-    <dialog id="selected-dialog" class="info-dialog"><section class="card dialog-card" aria-label="Torre seleccionada"><button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
-      <div id="selected-tower-panel" class="selected-tower-panel">
-        <p class="microcopy" data-i18n="selectedHelp">Seleccioná una torre ya construida para ver stats, nivel y mejora siguiente.</p>
-      </div>
-    </section></dialog>
-
-    <button class="panel-trigger" type="button" data-dialog-target="controls-dialog" aria-haspopup="dialog">Controles</button>
-    <dialog id="controls-dialog" class="info-dialog"><section class="card controls-card dialog-card" aria-label="Controles de partida"><button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
-      <div class="controls-row">
-        <button id="next-wave" class="button primary" disabled data-i18n="startWave">Iniciar oleada</button>
-        <button id="pause-game" class="button ghost" disabled data-i18n="pause">Pausar</button>
-        <button id="restart-game" class="button danger" data-i18n="restart">Reiniciar</button>
-        <button id="speed-toggle" class="button ghost" data-i18n="speedToggle">Velocidad x2</button>
-      </div>
-
-      <div class="ability-row">
-        <button id="emp-ability" class="button ability" disabled data-i18n="empAbility">EMP global (160c)</button>
-        <button id="repair-ability" class="button ability" disabled data-i18n="repairAbility">Reparar core (120c)</button>
-        <button id="overclock-ability" class="button ability" disabled data-i18n="overclockAbility">Overclock torre (90c)</button>
-      </div>
-    </section></dialog>
-
-    <button class="panel-trigger" type="button" data-dialog-target="ranking-dialog" aria-haspopup="dialog">Top 10</button>
-    <dialog id="ranking-dialog" class="info-dialog"><section class="card leaderboard-card dialog-card" aria-label="Top 10"><button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
-      <div id="leaderboard-list" class="leaderboard-list">
-        {% for entry in top_entries %}
-          <div class="leaderboard-row">
-            <span>{{ forloop.counter }}. {{ entry.player_name }}</span>
-            <strong>{{ entry.score }}</strong>
+        <div class="play-dialog-section" aria-label="Configuración de partida">
+          <h3>Configurar partida</h3>
+          <div class="setup-fields">
+            <label class="label" for="player-name" data-i18n="pilotName">Nombre del piloto</label>
+            <input id="player-name" class="input" type="text" maxlength="30" placeholder="Ej: Lu" data-i18n-placeholder="pilotPlaceholder" />
+            <div>
+              <label class="label">Escenario</label>
+              <div id="scenario-picker" class="scenario-picker"></div>
+            </div>
+            <button id="start-game" class="button primary" data-i18n="startSimulation">Confirmar partida y jugar</button>
+            <p class="microcopy" data-i18n="loginCopy">No requiere login. El ranking guarda nombre, score, oleadas y bajas.</p>
           </div>
-        {% empty %}
-          <p class="microcopy" data-i18n="emptyLeaderboard">Todavía no hay registros. Sé el primero en romper la simulación.</p>
-        {% endfor %}
-      </div>
-      <a class="text-link" href="{% url 'leaderboard' %}" data-i18n="fullLeaderboard">Ver ranking completo</a>
-    </section></dialog>
+        </div>
+
+        <div class="play-dialog-section" aria-label="Torres">
+          <h3>Torres</h3>
+          <div id="tower-shop" class="tower-shop"></div>
+          <p class="microcopy" data-i18n="shopHelp">Click en un nodo libre para construir la torre seleccionada.</p>
+        </div>
+
+        <div class="play-dialog-section" aria-label="Torre seleccionada">
+          <h3>Torre seleccionada</h3>
+          <div id="selected-tower-panel" class="selected-tower-panel">
+            <p class="microcopy" data-i18n="selectedHelp">Seleccioná una torre ya construida para ver stats, nivel y mejora siguiente.</p>
+          </div>
+        </div>
+
+        <div class="play-dialog-section controls-card" aria-label="Controles de partida">
+          <h3>Controles</h3>
+          <div class="controls-row">
+            <button id="next-wave" class="button primary" disabled data-i18n="startWave">Iniciar oleada</button>
+            <button id="pause-game" class="button ghost" disabled data-i18n="pause">Pausar</button>
+            <button id="restart-game" class="button danger" data-i18n="restart">Reiniciar</button>
+            <button id="speed-toggle" class="button ghost" data-i18n="speedToggle">Velocidad x2</button>
+          </div>
+
+          <div class="ability-row">
+            <button id="emp-ability" class="button ability" disabled data-i18n="empAbility">EMP global (160c)</button>
+            <button id="repair-ability" class="button ability" disabled data-i18n="repairAbility">Reparar core (120c)</button>
+            <button id="overclock-ability" class="button ability" disabled data-i18n="overclockAbility">Overclock torre (90c)</button>
+          </div>
+        </div>
+      </section>
+    </dialog>
   </aside>
 
   <section class="game-panel board-only" aria-label="Tablero de juego">

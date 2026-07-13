@@ -17,6 +17,7 @@ const comboValue = document.getElementById('combo-value');
 const speedValue = document.getElementById('speed-value');
 const scenarioValue = document.getElementById('scenario-value');
 const scenarioPicker = document.getElementById('scenario-picker');
+const playDialog = document.getElementById('play-dialog');
 
 const hud = {
   hp: document.getElementById('hp-value'),
@@ -624,6 +625,7 @@ function startGame() {
   nextWaveButton.disabled = false;
   pauseButton.disabled = false;
   startButton.disabled = true;
+  if (playDialog?.open) playDialog.close();
   renderScenarioPicker();
 }
 
