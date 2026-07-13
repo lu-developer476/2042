@@ -82,8 +82,9 @@ button, input { font: inherit; }
 .brand-title { font-size: clamp(1rem, 1.4vw, 1.3rem); font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .navbar-links, .navbar-status, .preference-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .navbar-links { justify-content: center; padding: 8px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,0.05); }
-.navbar-links a, .side-nav a { color: var(--muted); font-weight: 700; padding: 8px 12px; border-radius: 999px; }
-.navbar-links a:hover, .side-nav a:hover { color: var(--text); background: rgba(109, 242, 255, 0.1); }
+.navbar-links a, .navbar-dialog-trigger, .side-nav a { color: var(--muted); font-weight: 700; padding: 8px 12px; border-radius: 999px; }
+.navbar-dialog-trigger { border: 0; background: transparent; cursor: pointer; }
+.navbar-links a:hover, .navbar-dialog-trigger:hover, .side-nav a:hover { color: var(--text); background: rgba(109, 242, 255, 0.1); }
 .navbar-status { justify-content: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,0.04); }
 .navbar-status > span:not(.sidebar-badge) { display: grid; gap: 2px; }
 .navbar-status strong { font-family: 'Orbitron', sans-serif; font-size: 0.82rem; white-space: nowrap; }
@@ -359,7 +360,7 @@ td { color: var(--muted); }
   .app-shell { padding: 8px; gap: 8px; }
   .navbar { padding: 10px; border-radius: 16px; gap: 10px; }
   .navbar-links { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: 16px; }
-  .navbar-links a { text-align: center; padding-inline: 8px; }
+  .navbar-links a, .navbar-dialog-trigger { text-align: center; padding-inline: 8px; }
   .preference-actions { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .setup-panel, .card, .game-panel { border-radius: 18px; }
   .hud-grid, .intel-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
