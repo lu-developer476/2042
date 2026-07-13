@@ -112,6 +112,20 @@ function initInfoDialogs() {
       });
     });
   });
+
+  playDialog?.addEventListener('click', (event) => {
+    const openPopover = playDialog.querySelector('.play-popover[open]');
+    if (!openPopover) return;
+    const isPanelClick = event.target.closest('.play-popover-panel');
+    const isTriggerClick = event.target.closest('.play-popover-trigger');
+    if (!isPanelClick && !isTriggerClick) openPopover.open = false;
+  });
+
+  playDialog?.addEventListener('close', () => {
+    playDialog.querySelectorAll('.play-popover[open]').forEach((popover) => {
+      popover.open = false;
+    });
+  });
 }
 
 initInfoDialogs();
