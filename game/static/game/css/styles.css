@@ -590,8 +590,8 @@ td { color: var(--muted); }
 }
 
 .info-dialog {
-  width: min(90vw, 680px);
-  max-height: min(84svh, 700px);
+  width: min(94vw, 760px);
+  max-height: min(88svh, 760px);
   padding: 0;
   border: 0;
   background: transparent;
@@ -606,8 +606,10 @@ td { color: var(--muted); }
 .dialog-card {
   position: relative;
   width: 100%;
-  max-height: min(84svh, 700px);
+  max-height: min(88svh, 760px);
   overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(109, 242, 255, 0.48) rgba(255, 255, 255, 0.06);
   padding: clamp(14px, 1.7vw, 20px);
   border: 1px solid var(--line-strong);
   border-radius: 24px;
@@ -645,7 +647,7 @@ td { color: var(--muted); }
   min-height: 70px;
   padding: 0;
   overflow: hidden;
-  transition: border-color 160ms ease, background 160ms ease;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
 
 .play-popover-trigger {
@@ -682,36 +684,24 @@ td { color: var(--muted); }
 }
 
 .play-popover[open] {
-  z-index: 30;
+  z-index: 1;
   border-color: var(--cyan);
-}
-
-.play-popover[open]::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 44;
-  border-radius: inherit;
-  background: rgba(2, 6, 14, 0.5);
+  box-shadow: 0 0 0 1px rgba(109, 242, 255, 0.24), 0 16px 34px rgba(0, 0, 0, 0.22);
 }
 
 .play-popover-panel {
   display: none;
   gap: 8px;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  z-index: 45;
-  width: min(86vw, 480px);
-  max-height: min(64svh, 480px);
+  width: 100%;
+  max-height: min(50svh, 430px);
   overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(109, 242, 255, 0.48) rgba(255, 255, 255, 0.06);
   margin: 0;
-  padding: 14px 16px;
-  border: 1px solid var(--line-strong);
-  border-radius: 18px;
-  background: rgba(5, 10, 20, 0.96);
-  box-shadow: var(--shadow), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
-  transform: translate(-50%, -50%);
+  padding: 12px;
+  border-top: 1px solid var(--line);
+  background: rgba(5, 10, 20, 0.72);
 }
 
 .play-popover[open] .play-popover-panel {
@@ -848,9 +838,8 @@ td { color: var(--muted); }
   }
 
   .play-popover-panel {
-    width: min(86vw, 460px);
-    max-height: 64svh;
-    padding: 14px;
+    max-height: 58svh;
+    padding: 12px;
   }
 }
 
@@ -903,11 +892,9 @@ td { color: var(--muted); }
   }
 
   .play-popover-panel {
-    width: 90vw;
-    max-height: 62svh;
+    max-height: 58svh;
     gap: 8px;
-    padding: 12px;
-    border-radius: 16px;
+    padding: 10px;
   }
 }
 
