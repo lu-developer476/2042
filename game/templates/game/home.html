@@ -1,6 +1,9 @@
 {% extends 'game/base.html' %}
 {% load static %}
 {% block title %}Tower Defense{% endblock %}
+{% block nav_play %}
+<button class="navbar-dialog-trigger" type="button" data-dialog-target="play-dialog" aria-haspopup="dialog" data-i18n="navPlay">Jugar</button>
+{% endblock %}
 {% block content %}
 <section class="game-layout" aria-label="Interfaz principal del juego">
   <div class="game-statusbar" aria-label="Estado de partida">
@@ -29,7 +32,6 @@
     </dialog>
   </div>
   <aside class="sidebar command-sidebar" aria-label="Consola lateral de comando">
-    <button class="panel-trigger" type="button" data-dialog-target="play-dialog" aria-haspopup="dialog">Jugar</button>
     <dialog id="play-dialog" class="info-dialog">
       <section class="card play-dialog-card dialog-card" aria-label="Panel de juego">
         <button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
