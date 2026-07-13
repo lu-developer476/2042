@@ -4,34 +4,33 @@
 {% block content %}
 <section class="game-layout" aria-label="Interfaz principal del juego">
   <div class="game-statusbar" aria-label="Estado de partida">
-    <div class="hud-grid">
-      <div class="hud-item"><span>Core HP</span><strong id="hp-value">20</strong></div>
-      <div class="hud-item"><span data-i18n="credits">Créditos</span><strong id="credits-value">300</strong></div>
-      <div class="hud-item"><span data-i18n="wave">Oleada</span><strong id="wave-value">0 / 8</strong></div>
-      <div class="hud-item"><span data-i18n="kills">Bajas</span><strong id="kills-value">0</strong></div>
-      <div class="hud-item"><span>Score</span><strong id="score-value">0</strong></div>
-    </div>
-    <div class="intel-strip" aria-live="polite">
-      <div>
-        <span data-i18n="nextThreat">Próxima amenaza</span>
-        <strong id="wave-preview">--</strong>
+    <button class="panel-trigger status-trigger" type="button" data-dialog-target="status-dialog" aria-haspopup="dialog">
+      <span>Estado de defensa</span>
+      <strong><span id="hp-value">20</span> HP · <span id="credits-value">300</span>c · <span id="wave-value">0 / 8</span></strong>
+    </button>
+    <dialog id="status-dialog" class="info-dialog">
+      <div class="dialog-card">
+        <button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
+        <h2>Estado de defensa</h2>
+        <div class="hud-grid">
+          <div class="hud-item"><span>Core HP</span><strong id="hp-detail-value">20</strong></div>
+          <div class="hud-item"><span data-i18n="credits">Créditos</span><strong id="credits-detail-value">300</strong></div>
+          <div class="hud-item"><span data-i18n="wave">Oleada</span><strong id="wave-detail-value">0 / 8</strong></div>
+          <div class="hud-item"><span data-i18n="kills">Bajas</span><strong id="kills-value">0</strong></div>
+          <div class="hud-item"><span>Score</span><strong id="score-value">0</strong></div>
+        </div>
+        <div class="intel-strip" aria-live="polite">
+          <div><span data-i18n="nextThreat">Próxima amenaza</span><strong id="wave-preview">--</strong></div>
+          <div><span data-i18n="combo">Combo táctico</span><strong id="combo-value">x1.00</strong></div>
+          <div><span data-i18n="speed">Velocidad</span><strong id="speed-value">1x</strong></div>
+          <div><span>Escenario activo</span><strong id="scenario-value">--</strong></div>
+        </div>
       </div>
-      <div>
-        <span data-i18n="combo">Combo táctico</span>
-        <strong id="combo-value">x1.00</strong>
-      </div>
-      <div>
-        <span data-i18n="speed">Velocidad</span>
-        <strong id="speed-value">1x</strong>
-      </div>
-      <div>
-        <span>Escenario activo</span>
-        <strong id="scenario-value">--</strong>
-      </div>
-    </div>
+    </dialog>
   </div>
   <aside class="sidebar command-sidebar" aria-label="Consola lateral de comando">
-    <section class="card setup-card" aria-label="Configuración de partida">
+    <button class="panel-trigger" type="button" data-dialog-target="setup-dialog" aria-haspopup="dialog">Configurar partida</button>
+    <dialog id="setup-dialog" class="info-dialog"><section class="card setup-card dialog-card" aria-label="Configuración de partida"><button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
       <div class="setup-fields">
         <label class="label" for="player-name" data-i18n="pilotName">Nombre del piloto</label>
         <input id="player-name" class="input" type="text" maxlength="30" placeholder="Ej: Lu" data-i18n-placeholder="pilotPlaceholder" />
@@ -42,20 +41,23 @@
         <button id="start-game" class="button primary" data-i18n="startSimulation">Iniciar simulación</button>
         <p class="microcopy" data-i18n="loginCopy">No requiere login. El ranking guarda nombre, score, oleadas y bajas.</p>
       </div>
-    </section>
+    </section></dialog>
 
-    <section class="card" aria-label="Torres">
+    <button class="panel-trigger" type="button" data-dialog-target="towers-dialog" aria-haspopup="dialog">Torres</button>
+    <dialog id="towers-dialog" class="info-dialog"><section class="card dialog-card" aria-label="Torres"><button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
       <div id="tower-shop" class="tower-shop"></div>
       <p class="microcopy" data-i18n="shopHelp">Click en un nodo libre para construir la torre seleccionada.</p>
-    </section>
+    </section></dialog>
 
-    <section class="card" aria-label="Torre seleccionada">
+    <button class="panel-trigger" type="button" data-dialog-target="selected-dialog" aria-haspopup="dialog">Torre seleccionada</button>
+    <dialog id="selected-dialog" class="info-dialog"><section class="card dialog-card" aria-label="Torre seleccionada"><button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
       <div id="selected-tower-panel" class="selected-tower-panel">
         <p class="microcopy" data-i18n="selectedHelp">Seleccioná una torre ya construida para ver stats, nivel y mejora siguiente.</p>
       </div>
-    </section>
+    </section></dialog>
 
-    <section class="card controls-card" aria-label="Controles de partida">
+    <button class="panel-trigger" type="button" data-dialog-target="controls-dialog" aria-haspopup="dialog">Controles</button>
+    <dialog id="controls-dialog" class="info-dialog"><section class="card controls-card dialog-card" aria-label="Controles de partida"><button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
       <div class="controls-row">
         <button id="next-wave" class="button primary" disabled data-i18n="startWave">Iniciar oleada</button>
         <button id="pause-game" class="button ghost" disabled data-i18n="pause">Pausar</button>
@@ -68,9 +70,10 @@
         <button id="repair-ability" class="button ability" disabled data-i18n="repairAbility">Reparar core (120c)</button>
         <button id="overclock-ability" class="button ability" disabled data-i18n="overclockAbility">Overclock torre (90c)</button>
       </div>
-    </section>
+    </section></dialog>
 
-    <section class="card leaderboard-card" aria-label="Top 10">
+    <button class="panel-trigger" type="button" data-dialog-target="ranking-dialog" aria-haspopup="dialog">Top 10</button>
+    <dialog id="ranking-dialog" class="info-dialog"><section class="card leaderboard-card dialog-card" aria-label="Top 10"><button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
       <div id="leaderboard-list" class="leaderboard-list">
         {% for entry in top_entries %}
           <div class="leaderboard-row">
@@ -82,7 +85,7 @@
         {% endfor %}
       </div>
       <a class="text-link" href="{% url 'leaderboard' %}" data-i18n="fullLeaderboard">Ver ranking completo</a>
-    </section>
+    </section></dialog>
   </aside>
 
   <section class="game-panel board-only" aria-label="Tablero de juego">
