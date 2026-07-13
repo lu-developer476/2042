@@ -391,3 +391,157 @@ td { color: var(--muted); }
 :root[data-theme="light"] .input {
   background: rgba(255, 255, 255, 0.78);
 }
+
+/* Responsive game-first layout: all controls live in the top bar and side rail, keeping the board alone in the play area. */
+.game-layout {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    "status status"
+    "sidebar board";
+  gap: clamp(10px, 1.2vw, 16px);
+  align-items: start;
+}
+
+.game-statusbar {
+  grid-area: status;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.95fr);
+  gap: clamp(10px, 1.2vw, 16px);
+  padding: clamp(10px, 1.2vw, 14px);
+  background: rgba(8, 12, 24, 0.76);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow);
+}
+
+.game-statusbar .hud-grid,
+.game-statusbar .intel-strip {
+  margin: 0;
+}
+
+.command-sidebar {
+  grid-area: sidebar;
+}
+
+.board-only {
+  grid-area: board;
+  padding: clamp(8px, 1vw, 12px);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.board-only .battlefield-wrap {
+  min-height: clamp(360px, 63svh, 760px);
+  max-height: none;
+}
+
+.command-sidebar .setup-fields {
+  grid-template-columns: 1fr;
+  align-items: stretch;
+}
+
+.command-sidebar .scenario-picker,
+.command-sidebar .tower-shop,
+.command-sidebar .leaderboard-list {
+  grid-template-columns: 1fr;
+}
+
+.command-sidebar .controls-row,
+.command-sidebar .ability-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 0;
+}
+
+.command-sidebar .ability-row {
+  margin-top: 8px;
+}
+
+@media (min-width: 1281px) {
+  .command-sidebar {
+    position: sticky;
+    top: clamp(10px, 1.4vw, 18px);
+    max-height: calc(100svh - 170px);
+    overflow: auto;
+    scrollbar-width: thin;
+  }
+}
+
+@media (max-width: 1280px) {
+  .game-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "status"
+      "board"
+      "sidebar";
+  }
+
+  .game-statusbar {
+    grid-template-columns: 1fr;
+  }
+
+  .command-sidebar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .command-sidebar .controls-card,
+  .command-sidebar .leaderboard-card {
+    grid-column: 1 / -1;
+  }
+
+  .command-sidebar .controls-row,
+  .command-sidebar .ability-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .command-sidebar .ability-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .board-only .battlefield-wrap {
+    min-height: clamp(320px, 56svh, 620px);
+  }
+}
+
+@media (max-width: 960px) {
+  .command-sidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .command-sidebar .controls-card,
+  .command-sidebar .leaderboard-card {
+    grid-column: auto;
+  }
+
+  .command-sidebar .controls-row,
+  .command-sidebar .ability-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .game-layout,
+  .game-statusbar {
+    gap: 8px;
+  }
+
+  .game-statusbar,
+  .board-only {
+    border-radius: 16px;
+  }
+
+  .board-only .battlefield-wrap {
+    min-height: clamp(220px, 58vw, 360px);
+  }
+}
+
+@media (max-width: 460px) {
+  .command-sidebar .controls-row,
+  .command-sidebar .ability-row {
+    grid-template-columns: 1fr;
+  }
+}
