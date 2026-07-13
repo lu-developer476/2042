@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Tower Defense{% endblock %}
 {% block nav_play %}
-<button class="navbar-dialog-trigger" type="button" data-dialog-target="play-dialog" aria-haspopup="dialog" data-i18n="navPlay">Jugar</button>
+<button class="navbar-dialog-trigger" type="button" data-dialog-target="play-dialog" aria-haspopup="dialog" data-i18n="navPlay">Partida</button>
 {% endblock %}
 {% block content %}
 <section class="game-layout" aria-label="Interfaz principal del juego">
@@ -10,11 +10,11 @@
     <dialog id="play-dialog" class="info-dialog">
       <section class="card play-dialog-card dialog-card" aria-label="Panel de juego">
         <button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
-        <h2>Jugar</h2>
+        <h2>Partida</h2>
 
         <div class="play-dialog-grid" aria-label="Accesos rápidos de juego">
           <details class="play-dialog-section play-popover" aria-label="Configuración de partida">
-            <summary class="play-popover-trigger"><span>Configurar</span><strong>Partida</strong></summary>
+            <summary class="play-popover-trigger"><span>Configurar</span><strong>Nueva partida</strong></summary>
             <div class="play-popover-panel">
           <h3>Configurar partida</h3>
           <div class="setup-fields">

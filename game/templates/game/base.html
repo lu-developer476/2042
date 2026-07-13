@@ -17,11 +17,10 @@
   <div class="app-shell">
     <nav class="navbar" aria-label="Navegación principal">
       <a class="brand" href="{% url 'home' %}">
-        <span class="brand-kicker" data-i18n="brandKicker">SECTOR CORE //</span>
         <span class="brand-title">2042: Tower Defense</span>
       </a>
       <div class="navbar-links">
-        {% block nav_play %}<a href="{% url 'home' %}" data-i18n="navPlay">Jugar</a>{% endblock %}
+        {% block nav_play %}<a href="{% url 'home' %}" data-i18n="navPlay">Partida</a>{% endblock %}
         <a href="{% url 'leaderboard' %}" data-i18n="navLeaderboard">Ranking</a>
         <a href="/admin/" data-i18n="navAdmin">Admin</a>
       </div>
