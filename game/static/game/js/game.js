@@ -52,18 +52,14 @@ function initInfoDialogs() {
       soundEngine.play('ui');
       const dialog = document.getElementById(trigger.dataset.dialogTarget);
       if (!dialog) return;
-      if (typeof dialog.showModal === 'function') {
-        dialog.showModal();
-      } else {
-        dialog.setAttribute('open', '');
-      }
+      window.I18N_2042?.openDialog?.(dialog);
     });
   });
 
   document.querySelectorAll('.info-dialog').forEach((dialog) => {
     dialog.addEventListener('click', (event) => {
       if (event.target === dialog || event.target.closest('[data-dialog-close]')) {
-        dialog.close();
+        window.I18N_2042?.closeDialog?.(dialog);
       }
     });
   });
