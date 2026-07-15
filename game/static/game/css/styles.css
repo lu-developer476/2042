@@ -1161,6 +1161,7 @@ td { color: var(--muted); }
   min-height: 0;
   padding: 0;
   overflow: hidden;
+  max-width: 100%;
 }
 
 .board-command-section .play-popover-trigger {
@@ -1170,6 +1171,8 @@ td { color: var(--muted); }
 .board-command-section .play-popover-panel {
   display: none;
   max-height: min(34svh, 320px);
+  min-width: 0;
+  overflow-x: clip;
 }
 
 .board-command-section[open] .play-popover-panel {
@@ -1187,9 +1190,10 @@ td { color: var(--muted); }
 .board-command-section .controls-row,
 .board-command-section .ability-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
   gap: 8px;
   margin-top: 0;
+  min-width: 0;
 }
 
 .board-command-section .ability-row {
@@ -1197,6 +1201,27 @@ td { color: var(--muted); }
 }
 
 .board-command-section .button {
+  width: 100%;
+  min-width: 0;
+  white-space: normal;
+}
+
+.board-command-section .volume-control,
+.board-command-section .microcopy {
+  min-width: 0;
+}
+
+.board-command-section .volume-control {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.board-command-section .volume-control input {
+  min-width: 0;
   width: 100%;
 }
 
