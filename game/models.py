@@ -10,6 +10,12 @@ class LeaderboardEntry(models.Model):
 
     class Meta:
         ordering = ['-score', '-waves_cleared', '-enemies_destroyed', 'created_at']
+        indexes = [
+            models.Index(
+                fields=['-score', '-waves_cleared', '-enemies_destroyed', 'created_at'],
+                name='leaderboard_rank_idx',
+            ),
+        ]
 
     def __str__(self):
         return f'{self.player_name} - {self.score}'
