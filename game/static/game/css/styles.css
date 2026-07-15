@@ -1066,3 +1066,73 @@ td { color: var(--muted); }
     min-height: 44px;
   }
 }
+
+.launch-panel {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 14px;
+  padding: clamp(12px, 1.6vw, 18px);
+}
+
+.launch-panel-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+
+.launch-panel h2 {
+  margin: 2px 0 0;
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(1rem, 2vw, 1.35rem);
+}
+
+.launch-setup-fields {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(180px, 1.4fr) minmax(180px, 1.4fr) auto auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.launch-setup-fields > .label {
+  display: grid;
+  gap: 6px;
+}
+
+.launch-setup-fields .input,
+.launch-setup-fields .button {
+  min-height: 48px;
+}
+
+.endless-toggle {
+  align-self: center;
+}
+
+@media (max-width: 960px) {
+  .launch-panel-header,
+  .launch-setup-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .launch-panel-header {
+    display: grid;
+  }
+}
+
+@media (max-width: 720px) {
+  .launch-panel {
+    padding: 10px;
+    border-radius: 16px;
+  }
+
+  .launch-panel .scenario-picker {
+    grid-template-columns: 1fr;
+  }
+
+  .overlay-message {
+    align-items: end;
+    padding: 14px;
+    background: linear-gradient(180deg, rgba(4, 7, 14, 0.18), rgba(4, 7, 14, 0.72));
+    font-size: 1rem;
+  }
+}
