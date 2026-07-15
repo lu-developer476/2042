@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Tower Defense{% endblock %}
 {% block nav_play %}
-<button class="navbar-dialog-trigger" type="button" data-dialog-target="play-dialog" aria-haspopup="dialog" data-i18n="navPlay">Partida</button>
+<button class="navbar-dialog-trigger" type="button" data-dialog-target="play-dialog" aria-haspopup="dialog" data-i18n="navPlay">Nueva partida</button>
 {% endblock %}
 {% block content %}
 <section class="game-layout" aria-label="Interfaz principal del juego">
@@ -10,11 +10,11 @@
     <dialog id="play-dialog" class="info-dialog">
       <section class="card play-dialog-card dialog-card" aria-label="Panel de juego">
         <button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
-        <h2>Partida</h2>
+        <h2>Nueva partida</h2>
 
         <div class="play-dialog-grid play-dialog-grid-single" aria-label="Accesos rápidos de juego">
-          <details class="play-dialog-section play-popover" open aria-label="Configuración de partida">
-            <summary class="play-popover-trigger"><span>Configurar</span><strong>Nueva partida</strong></summary>
+          <details class="play-dialog-section play-popover" aria-label="Configuración de partida">
+            <summary class="play-popover-trigger"><span>Configurar</span><strong>Nueva partida</strong><em>Escenario, dificultad y piloto</em></summary>
             <div class="play-popover-panel">
               <h3>Configurar partida</h3>
               <p class="microcopy" data-i18n="loginCopy">Elegí escenario, dificultad e iniciá una nueva partida. Las torres, controles y acciones quedan disponibles desde el tablero durante toda la partida.</p>
@@ -28,7 +28,6 @@
                     <option value="1">Desierto Ígneo</option>
                     <option value="2">Ruinas Aurora</option>
                   </select>
-                  <div id="scenario-picker" class="scenario-picker" aria-label="Escenarios rápidos"></div>
                 </div>
                 <div>
                   <label class="label" for="difficulty-select">Dificultad</label>
@@ -38,7 +37,6 @@
                     <option value="hard">Difícil</option>
                     <option value="nightmare">Pesadilla</option>
                   </select>
-                  <div id="difficulty-picker" class="scenario-picker" aria-label="Dificultades rápidas"></div>
                 </div>
                 <label class="microcopy endless-toggle">
                   <input id="endless-mode" type="checkbox" />

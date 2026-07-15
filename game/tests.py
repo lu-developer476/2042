@@ -52,6 +52,27 @@ class LeaderboardViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()['results']), 20)
 
+    def test_home_includes_cross_device_favicon_links(self):
+        response = self.client.get(reverse('home'))
+
+        self.assertContains(response, 'href="/favicon.ico"')
+        self.assertContains(response, 'href="/favicon.svg"')
+        self.assertContains(response, 'href="/site.webmanifest"')
+
+    def test_favicon_assets_are_served_with_expected_content_types(self):
+        expected_content_types = {
+            '/favicon.ico': 'image/svg+xml',
+            '/favicon.svg': 'image/svg+xml',
+            '/site.webmanifest': 'application/manifest+json',
+        }
+
+        for url, content_type in expected_content_types.items():
+            with self.subTest(url=url):
+                response = self.client.get(url)
+
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.headers['Content-Type'], content_type)
+
 
 class SaveScoreApiTests(TestCase):
     def post_score(self, payload):
