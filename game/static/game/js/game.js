@@ -955,12 +955,9 @@ function getCanvasCoordinates(event) {
   };
 }
 
-function positionNodeCommand(node) {
+function positionNodeCommand() {
   if (!nodeCommandPopover) return;
-  const left = (node.x / canvas.width) * 100;
-  const top = (node.y / canvas.height) * 100;
-  nodeCommandPopover.style.left = `${left}%`;
-  nodeCommandPopover.style.top = `${top}%`;
+  nodeCommandPopover.removeAttribute('style');
 }
 
 function closeNodeCommand() {
