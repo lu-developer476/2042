@@ -6,7 +6,7 @@ from django.urls import include, path
 
 
 FAVICON_FILES = {
-    'favicon.ico': ('favicon.svg', 'image/svg+xml'),
+    'favicon.ico': ('favicon.jpg', 'image/jpeg'),
     'favicon.svg': ('favicon.svg', 'image/svg+xml'),
     'site.webmanifest': ('site.webmanifest', 'application/manifest+json'),
     'favicon.jpg': ('favicon.jpg', 'image/jpeg'),

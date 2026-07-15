@@ -56,13 +56,13 @@ class LeaderboardViewTests(TestCase):
         response = self.client.get(reverse('home'))
 
         self.assertContains(response, 'href="/favicon.ico"')
-        self.assertContains(response, 'href="/favicon.svg"')
+        self.assertContains(response, 'href="/favicon.jpg"')
         self.assertContains(response, 'href="/site.webmanifest"')
 
     def test_favicon_assets_are_served_with_expected_content_types(self):
         expected_content_types = {
-            '/favicon.ico': 'image/svg+xml',
-            '/favicon.svg': 'image/svg+xml',
+            '/favicon.ico': 'image/jpeg',
+            '/favicon.jpg': 'image/jpeg',
             '/site.webmanifest': 'application/manifest+json',
         }
 
