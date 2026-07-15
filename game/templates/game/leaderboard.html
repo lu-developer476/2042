@@ -20,12 +20,12 @@
       <tbody>
         {% for entry in top_entries %}
         <tr class="leaderboard-entry" tabindex="0" role="button" aria-controls="replay-{{ entry.id }}" aria-expanded="false">
-          <td>{{ forloop.counter }}</td>
-          <td>{{ entry.player_name }}</td>
-          <td>{{ entry.score }}</td>
-          <td>{{ entry.waves_cleared }}</td>
-          <td>{{ entry.enemies_destroyed }}</td>
-          <td>{{ entry.created_at|date:'d/m/Y H:i' }}</td>
+          <td data-label="#">{{ forloop.counter }}</td>
+          <td data-label="Piloto">{{ entry.player_name }}</td>
+          <td data-label="Score">{{ entry.score }}</td>
+          <td data-label="Oleadas">{{ entry.waves_cleared }}</td>
+          <td data-label="Bajas">{{ entry.enemies_destroyed }}</td>
+          <td data-label="Fecha">{{ entry.created_at|date:'d/m/Y H:i' }}</td>
         </tr>
         <tr id="replay-{{ entry.id }}" class="replay-summary-row hidden">
           <td colspan="6">

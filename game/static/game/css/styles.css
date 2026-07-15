@@ -321,7 +321,7 @@ button, input { font: inherit; }
 .text-link { display: inline-block; margin-top: 14px; color: var(--cyan); }
 
 .leaderboard-page h1 { margin-top: 10px; font-size: clamp(1.8rem, 2vw, 2.6rem); }
-.table-wrap { overflow-x: auto; }
+.table-wrap { width: 100%; max-width: 100%; overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 14px 12px; text-align: left; border-bottom: 1px solid rgba(109, 242, 255, 0.12); }
 th { color: var(--cyan); font-family: 'Orbitron', sans-serif; font-size: 0.82rem; letter-spacing: 0.08em; }
@@ -920,6 +920,78 @@ td { color: var(--muted); }
     max-height: 58svh;
     gap: 8px;
     padding: 10px;
+  }
+
+  .leaderboard-page {
+    overflow: hidden;
+  }
+
+  .leaderboard-page h1 {
+    font-size: clamp(1.55rem, 12vw, 2rem);
+    line-height: 1.05;
+  }
+
+  .table-wrap {
+    overflow-x: visible;
+  }
+
+  .leaderboard-page table,
+  .leaderboard-page thead,
+  .leaderboard-page tbody,
+  .leaderboard-page tr,
+  .leaderboard-page th,
+  .leaderboard-page td {
+    display: block;
+    width: 100%;
+  }
+
+  .leaderboard-page thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .leaderboard-page tbody {
+    display: grid;
+    gap: 10px;
+  }
+
+  .leaderboard-page tr {
+    border: 1px solid rgba(109, 242, 255, 0.16);
+    border-radius: 16px;
+    background: rgba(5, 10, 18, 0.55);
+    overflow: hidden;
+  }
+
+  .leaderboard-page td {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 10px 12px;
+    text-align: right;
+  }
+
+  .leaderboard-page td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: var(--cyan);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: left;
+  }
+
+  .leaderboard-page td[colspan] {
+    display: block;
+    text-align: left;
+  }
+
+  .leaderboard-page td[colspan]::before {
+    content: none;
   }
 }
 
