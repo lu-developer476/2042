@@ -264,6 +264,7 @@ class Tower {
     state.credits -= this.upgradeCost;
     this.level += 1;
     this.applyUpgradeStats();
+    soundEngine.play('upgrade');
     state.towersUpgraded += 1;
     announce(`${this.type.name} mejorada a nivel ${this.level}.`);
     updateHud();
@@ -428,6 +429,7 @@ class Projectile {
 
 function fireProjectile(tower, target, damage, isShock = false) {
   const critChance = tower.typeKey === 'burst' && tower.level === 5 ? tower.critChance || 0 : 0;
+  soundEngine.play(isShock ? 'zap' : 'shoot');
   const projectile = new Projectile(tower.x, tower.y, target, damage, isShock, critChance);
   projectile.slow = tower.slow || 0;
   state.projectiles.push(projectile);
@@ -506,6 +508,7 @@ function resetState() {
 
 function startGame() {
   soundEngine.play('start');
+  soundEngine.startAmbience();
   state.started = true;
   state.playerName = playerNameInput.value.trim() || 'Piloto Anónimo';
   state.startedAt = Date.now();
@@ -700,6 +703,7 @@ function updateSpawns(dt) {
   state.pendingSpawn.timer -= dt;
   if (state.pendingSpawn.timer <= 0 && state.pendingSpawn.queue.length) {
     const enemyType = state.pendingSpawn.queue.shift();
+    soundEngine.play('spawn');
     const scenario = getActiveScenario();
     const routeIndex = state.pendingSpawn.routeCursor % scenario.routes.length;
     state.pendingSpawn.routeCursor += 1;
@@ -725,6 +729,7 @@ function updateSpawns(dt) {
 
 function finishGame(victory) {
   state.gameOver = true;
+  soundEngine.stopAmbience();
   state.waveInProgress = false;
   state.pendingSpawn = null;
   nextWaveButton.disabled = true;
@@ -1081,6 +1086,7 @@ pauseButton.addEventListener('click', () => {
 });
 restartButton.addEventListener('click', () => {
   soundEngine.play('ui');
+  soundEngine.stopAmbience();
   startButton.disabled = false;
   resetState();
 });
