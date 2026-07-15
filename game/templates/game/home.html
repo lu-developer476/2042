@@ -6,82 +6,84 @@
 {% endblock %}
 {% block content %}
 <section class="game-layout" aria-label="Interfaz principal del juego">
-  <section class="card launch-panel" aria-label="Configurar partida">
-    <div class="launch-panel-header">
-      <div>
-        <p class="side-label">Nueva partida</p>
-        <h2>Elegí escenario e iniciá la defensa</h2>
-      </div>
-      <p class="microcopy">El tablero queda visible mientras configurás la partida.</p>
-    </div>
-    <div class="setup-fields launch-setup-fields">
-      <label class="label" for="player-name" data-i18n="pilotName">Nombre del piloto</label>
-      <input id="player-name" class="input" type="text" maxlength="30" placeholder="Ej: Lu" data-i18n-placeholder="pilotPlaceholder" />
-      <div>
-        <label class="label" for="scenario-select">Escenario</label>
-        <select id="scenario-select" class="input setup-select" aria-label="Elegir escenario">
-          <option value="0">Muelles de Neón</option>
-          <option value="1">Desierto Ígneo</option>
-          <option value="2">Ruinas Aurora</option>
-        </select>
-        <div id="scenario-picker" class="scenario-picker" aria-label="Escenarios rápidos"></div>
-      </div>
-      <div>
-        <label class="label" for="difficulty-select">Dificultad</label>
-        <select id="difficulty-select" class="input setup-select" aria-label="Elegir dificultad">
-          <option value="easy">Fácil</option>
-          <option value="normal" selected>Normal</option>
-          <option value="hard">Difícil</option>
-          <option value="nightmare">Pesadilla</option>
-        </select>
-        <div id="difficulty-picker" class="scenario-picker" aria-label="Dificultades rápidas"></div>
-      </div>
-      <label class="microcopy endless-toggle">
-        <input id="endless-mode" type="checkbox" />
-        Modo infinito después de la oleada 8
-      </label>
-      <button id="start-game" class="button primary" data-i18n="startSimulation">Confirmar partida y jugar</button>
-    </div>
-  </section>
-
   <aside class="sidebar command-sidebar" aria-label="Consola lateral de comando">
     <dialog id="play-dialog" class="info-dialog">
       <section class="card play-dialog-card dialog-card" aria-label="Panel de juego">
         <button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
         <h2>Partida</h2>
 
-        <div class="play-dialog-grid" aria-label="Accesos rápidos de juego">
-          <details class="play-dialog-section play-popover" aria-label="Configuración de partida">
+        <div class="play-dialog-grid play-dialog-grid-single" aria-label="Accesos rápidos de juego">
+          <details class="play-dialog-section play-popover" open aria-label="Configuración de partida">
             <summary class="play-popover-trigger"><span>Configurar</span><strong>Nueva partida</strong></summary>
             <div class="play-popover-panel">
-          <h3>Configurar partida</h3>
-          <p class="microcopy" data-i18n="loginCopy">Usá el panel visible sobre el tablero para elegir escenario, dificultad e iniciar la partida.</p>
-          <p class="microcopy"><strong>Atajos:</strong> Espacio pausa/reanuda · N inicia oleada · 1/2/3 selecciona torres · M silencia audio · R reinicia.</p>
+              <h3>Configurar partida</h3>
+              <p class="microcopy" data-i18n="loginCopy">Elegí escenario, dificultad e iniciá una nueva partida. Las torres, controles y acciones quedan disponibles desde el tablero durante toda la partida.</p>
+              <div class="setup-fields launch-setup-fields">
+                <label class="label" for="player-name" data-i18n="pilotName">Nombre del piloto</label>
+                <input id="player-name" class="input" type="text" maxlength="30" placeholder="Ej: Lu" data-i18n-placeholder="pilotPlaceholder" />
+                <div>
+                  <label class="label" for="scenario-select">Escenario</label>
+                  <select id="scenario-select" class="input setup-select" aria-label="Elegir escenario">
+                    <option value="0">Muelles de Neón</option>
+                    <option value="1">Desierto Ígneo</option>
+                    <option value="2">Ruinas Aurora</option>
+                  </select>
+                  <div id="scenario-picker" class="scenario-picker" aria-label="Escenarios rápidos"></div>
+                </div>
+                <div>
+                  <label class="label" for="difficulty-select">Dificultad</label>
+                  <select id="difficulty-select" class="input setup-select" aria-label="Elegir dificultad">
+                    <option value="easy">Fácil</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="hard">Difícil</option>
+                    <option value="nightmare">Pesadilla</option>
+                  </select>
+                  <div id="difficulty-picker" class="scenario-picker" aria-label="Dificultades rápidas"></div>
+                </div>
+                <label class="microcopy endless-toggle">
+                  <input id="endless-mode" type="checkbox" />
+                  Modo infinito después de la oleada 8
+                </label>
+                <button id="start-game" class="button primary" data-i18n="startSimulation">Confirmar partida y jugar</button>
+              </div>
+              <p class="microcopy"><strong>Atajos:</strong> Espacio pausa/reanuda · N inicia oleada · 1/2/3 selecciona torres · M silencia audio · R reinicia.</p>
             </div>
           </details>
+        </div>
+      </section>
+    </dialog>
+  </aside>
 
-          <details class="play-dialog-section play-popover" aria-label="Torres">
-            <summary class="play-popover-trigger"><span>Gestionar</span><strong>Torres</strong></summary>
-            <div class="play-popover-panel">
+  <section class="game-panel board-only" aria-label="Tablero de juego">
+    <div class="battlefield-wrap">
+      <canvas id="battlefield" width="960" height="540" role="img" aria-label="Campo de batalla con rutas, nodos de torres y núcleo a defender"></canvas>
+      <div id="accessible-status" class="sr-only" aria-live="polite">Simulación lista.</div>
+      <div id="overlay-message" class="overlay-message hidden"></div>
+    </div>
+
+    <div class="board-command-grid" aria-label="Opciones de partida disponibles desde el tablero">
+      <details class="play-dialog-section board-command-section" open aria-label="Torres">
+        <summary class="play-popover-trigger"><span>Gestionar</span><strong>Torres</strong></summary>
+        <div class="play-popover-panel">
           <h3>Torres</h3>
           <div id="tower-shop" class="tower-shop"></div>
           <p class="microcopy" data-i18n="shopHelp">Click en un nodo libre para construir la torre seleccionada.</p>
-            </div>
-          </details>
+        </div>
+      </details>
 
-          <details class="play-dialog-section play-popover" aria-label="Torre seleccionada">
-            <summary class="play-popover-trigger"><span>Ver</span><strong>Torre seleccionada</strong></summary>
-            <div class="play-popover-panel">
+      <details class="play-dialog-section board-command-section" aria-label="Torre seleccionada">
+        <summary class="play-popover-trigger"><span>Ver</span><strong>Torre seleccionada</strong></summary>
+        <div class="play-popover-panel">
           <h3>Torre seleccionada</h3>
           <div id="selected-tower-panel" class="selected-tower-panel">
             <p class="microcopy" data-i18n="selectedHelp">Seleccioná una torre ya construida para ver stats, nivel y mejora siguiente.</p>
           </div>
-            </div>
-          </details>
+        </div>
+      </details>
 
-          <details class="play-dialog-section play-popover controls-card" aria-label="Controles de partida">
-            <summary class="play-popover-trigger"><span>Acciones</span><strong>Controles</strong></summary>
-            <div class="play-popover-panel">
+      <details class="play-dialog-section board-command-section controls-card" open aria-label="Controles de partida">
+        <summary class="play-popover-trigger"><span>Acciones</span><strong>Controles</strong></summary>
+        <div class="play-popover-panel">
           <h3>Controles</h3>
           <div class="controls-row">
             <button id="next-wave" class="button primary" disabled data-i18n="startWave">Iniciar oleada</button>
@@ -98,18 +100,8 @@
             <button id="repair-ability" class="button ability" disabled data-i18n="repairAbility">Reparar core (120c)</button>
             <button id="overclock-ability" class="button ability" disabled data-i18n="overclockAbility">Overclock torre (90c)</button>
           </div>
-            </div>
-          </details>
         </div>
-      </section>
-    </dialog>
-  </aside>
-
-  <section class="game-panel board-only" aria-label="Tablero de juego">
-    <div class="battlefield-wrap">
-      <canvas id="battlefield" width="960" height="540" role="img" aria-label="Campo de batalla con rutas, nodos de torres y núcleo a defender"></canvas>
-      <div id="accessible-status" class="sr-only" aria-live="polite">Simulación lista.</div>
-      <div id="overlay-message" class="overlay-message hidden"></div>
+      </details>
     </div>
   </section>
 </section>

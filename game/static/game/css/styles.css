@@ -1137,3 +1137,68 @@ td { color: var(--muted); }
     font-size: 1rem;
   }
 }
+
+.board-command-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.1fr) minmax(240px, 0.9fr) minmax(280px, 1.2fr);
+  gap: clamp(8px, 1vw, 12px);
+  margin-top: clamp(8px, 1vw, 12px);
+  align-items: start;
+}
+
+.board-command-section {
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.board-command-section .play-popover-trigger {
+  min-height: 58px;
+}
+
+.board-command-section .play-popover-panel {
+  display: none;
+  max-height: min(34svh, 320px);
+}
+
+.board-command-section[open] .play-popover-panel {
+  display: grid;
+}
+
+.board-command-section[open] {
+  border-color: var(--line-strong);
+}
+
+.board-command-section .tower-shop {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.board-command-section .controls-row,
+.board-command-section .ability-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-top: 0;
+}
+
+.board-command-section .ability-row {
+  margin-top: 8px;
+}
+
+.board-command-section .button {
+  width: 100%;
+}
+
+.play-dialog-grid-single {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 960px) {
+  .board-command-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .board-command-section .play-popover-panel {
+    max-height: none;
+  }
+}
