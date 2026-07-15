@@ -6,6 +6,33 @@
 {% endblock %}
 {% block content %}
 <section class="game-layout" aria-label="Interfaz principal del juego">
+  <section class="card launch-panel" aria-label="Configurar partida">
+    <div class="launch-panel-header">
+      <div>
+        <p class="side-label">Nueva partida</p>
+        <h2>Elegí escenario e iniciá la defensa</h2>
+      </div>
+      <p class="microcopy">El tablero queda visible mientras configurás la partida.</p>
+    </div>
+    <div class="setup-fields launch-setup-fields">
+      <label class="label" for="player-name" data-i18n="pilotName">Nombre del piloto</label>
+      <input id="player-name" class="input" type="text" maxlength="30" placeholder="Ej: Lu" data-i18n-placeholder="pilotPlaceholder" />
+      <div>
+        <label class="label">Escenario</label>
+        <div id="scenario-picker" class="scenario-picker"></div>
+      </div>
+      <div>
+        <label class="label">Dificultad</label>
+        <div id="difficulty-picker" class="scenario-picker"></div>
+      </div>
+      <label class="microcopy endless-toggle">
+        <input id="endless-mode" type="checkbox" />
+        Modo infinito después de la oleada 8
+      </label>
+      <button id="start-game" class="button primary" data-i18n="startSimulation">Confirmar partida y jugar</button>
+    </div>
+  </section>
+
   <aside class="sidebar command-sidebar" aria-label="Consola lateral de comando">
     <dialog id="play-dialog" class="info-dialog">
       <section class="card play-dialog-card dialog-card" aria-label="Panel de juego">
@@ -17,24 +44,7 @@
             <summary class="play-popover-trigger"><span>Configurar</span><strong>Nueva partida</strong></summary>
             <div class="play-popover-panel">
           <h3>Configurar partida</h3>
-          <div class="setup-fields">
-            <label class="label" for="player-name" data-i18n="pilotName">Nombre del piloto</label>
-            <input id="player-name" class="input" type="text" maxlength="30" placeholder="Ej: Lu" data-i18n-placeholder="pilotPlaceholder" />
-            <div>
-              <label class="label">Escenario</label>
-              <div id="scenario-picker" class="scenario-picker"></div>
-            </div>
-            <div>
-              <label class="label">Dificultad</label>
-              <div id="difficulty-picker" class="scenario-picker"></div>
-            </div>
-            <label class="microcopy">
-              <input id="endless-mode" type="checkbox" />
-              Modo infinito después de la oleada 8
-            </label>
-            <button id="start-game" class="button primary" data-i18n="startSimulation">Confirmar partida y jugar</button>
-            <p class="microcopy" data-i18n="loginCopy">No requiere login. El ranking guarda nombre, score, oleadas y bajas.</p>
-          </div>
+          <p class="microcopy" data-i18n="loginCopy">Usá el panel visible sobre el tablero para elegir escenario, dificultad e iniciar la partida.</p>
           <p class="microcopy"><strong>Atajos:</strong> Espacio pausa/reanuda · N inicia oleada · 1/2/3 selecciona torres · M silencia audio · R reinicia.</p>
             </div>
           </details>
