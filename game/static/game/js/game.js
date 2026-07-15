@@ -608,9 +608,9 @@ function renderDifficultyPicker() {
   syncSetupSelects();
 }
 
-function renderShop() {
-  if (!towerShop) return;
-  towerShop.innerHTML = '';
+function renderTowerList(container, { mode = 'build' } = {}) {
+  if (!container) return;
+  container.innerHTML = '';
   Object.values(towerTypes).forEach((towerType) => {
     const button = document.createElement('button');
     button.className = `tower-card ${state.selectedTowerType === towerType.key ? 'active' : ''}`;
@@ -619,22 +619,34 @@ function renderShop() {
       <p>${towerType.description}</p>
       <ul>
         <li>Mejoras: 5 niveles</li>
-        <li>Costo inicial: ${towerType.cost}</li>
+        <li>Costo: ${towerType.cost}c</li>
       </ul>
     `;
-    button.disabled = !!activeCommandNode?.occupied;
-    button.addEventListener('click', () => {
-      if (activeCommandNode && !activeCommandNode.occupied) {
-        buildTowerAtNode(activeCommandNode, towerType.key);
-        return;
-      }
-      state.selectedTowerType = towerType.key;
-      state.selectedTowerId = null;
-      renderShop();
-      renderSelectedTower();
-    });
-    towerShop.appendChild(button);
+
+    if (mode === 'replace') {
+      const selectedTower = state.towers.find((entry) => entry.id === state.selectedTowerId);
+      button.disabled = !activeCommandNode?.occupied || selectedTower?.typeKey === towerType.key || state.credits < towerType.cost;
+      button.setAttribute('aria-label', `Reemplazar por ${towerType.name} por ${towerType.cost} créditos`);
+      button.addEventListener('click', () => replaceTowerAtNode(activeCommandNode, towerType.key));
+    } else {
+      button.disabled = !!activeCommandNode?.occupied;
+      button.addEventListener('click', () => {
+        if (activeCommandNode && !activeCommandNode.occupied) {
+          buildTowerAtNode(activeCommandNode, towerType.key);
+          return;
+        }
+        state.selectedTowerType = towerType.key;
+        state.selectedTowerId = null;
+        renderShop();
+        renderSelectedTower();
+      });
+    }
+    container.appendChild(button);
   });
+}
+
+function renderShop() {
+  renderTowerList(towerShop, { mode: 'build' });
 }
 
 function renderSelectedTower() {
@@ -670,6 +682,18 @@ function renderSelectedTower() {
     upgradeButton.disabled = state.credits < tower.upgradeCost;
     upgradeButton.addEventListener('click', () => tower.upgrade());
     selectedTowerPanel.appendChild(upgradeButton);
+  }
+
+  if (activeCommandNode?.occupied === tower.id) {
+    const replaceTitle = document.createElement('p');
+    replaceTitle.className = 'microcopy replace-tower-copy';
+    replaceTitle.innerHTML = '<strong>Reemplazar torre:</strong> elegí otra del listado. Se cobra el costo completo de la nueva torre y la anterior se pierde.';
+    selectedTowerPanel.appendChild(replaceTitle);
+
+    const replaceList = document.createElement('div');
+    replaceList.className = 'tower-shop replace-tower-list';
+    selectedTowerPanel.appendChild(replaceList);
+    renderTowerList(replaceList, { mode: 'replace' });
   }
 }
 
@@ -1014,6 +1038,31 @@ function buildTowerAtNode(node, towerTypeKey) {
   announce(`${tower.type.name} construida. Créditos restantes: ${state.credits}.`);
   state.selectedTowerId = tower.id;
   state.selectedTowerType = null;
+  updateHud();
+  openNodeCommand(node);
+}
+
+function replaceTowerAtNode(node, towerTypeKey) {
+  if (!node?.occupied) return;
+  const previousTower = state.towers.find((entry) => entry.id === node.occupied);
+  const towerType = towerTypes[towerTypeKey];
+  if (!previousTower || !towerType || previousTower.typeKey === towerTypeKey) return;
+  if (state.credits < towerType.cost) {
+    soundEngine.play('fail');
+    createFloatingText(node.x - 15, node.y - 34, 'SIN CRÉDITOS', '#ff7ca7');
+    return;
+  }
+
+  state.credits -= towerType.cost;
+  state.towers = state.towers.filter((entry) => entry.id !== previousTower.id);
+  const tower = new Tower(towerTypeKey, node);
+  node.occupied = tower.id;
+  state.towers.push(tower);
+  state.selectedTowerId = tower.id;
+  state.selectedTowerType = null;
+  soundEngine.play('build');
+  announce(`${previousTower.type.name} reemplazada por ${tower.type.name}. Créditos restantes: ${state.credits}.`);
+  createFloatingText(node.x - 30, node.y - 45, 'REEMPLAZO', '#6df2ff');
   updateHud();
   openNodeCommand(node);
 }
