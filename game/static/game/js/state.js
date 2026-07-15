@@ -1,3 +1,5 @@
+import { wavePlan } from './waves.js';
+
 export const state = {
   started: false,
   paused: false,
