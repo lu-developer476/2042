@@ -1,6 +1,6 @@
 const translations = {
   es: {
-    navPlay: 'Nueva partida', navLeaderboard: 'Ranking', navAdmin: 'Admin', themeToggle: 'Modo oscuro/Modo claro',
+    navPlay: 'Nueva partida', navLeaderboard: 'Ranking', navAdmin: 'Admin', themeToggle: '🌙/☀️',
     heroEyebrow: 'Defensa táctica futurista', heroTitle: 'Protegé el núcleo. Resistí hasta el colapso de la oleada final.',
     heroCopy: 'Colocá torres en nodos predefinidos, mejoralas hasta nivel 5 y detené drones, tanques mecánicos y señales fantasma. Ahora contás con habilidades tácticas, combo de bajas, velocidad x2 y vista previa de amenazas.',
     pilotName: 'Nombre del piloto', pilotPlaceholder: 'Ej: Lu', startSimulation: 'Confirmar partida', loginCopy: 'No requiere login. El ranking guarda nombre, score, oleadas y bajas.',
@@ -9,7 +9,7 @@ const translations = {
     empAbility: 'EMP global (160c)', repairAbility: 'Reparar core (120c)', overclockAbility: 'Overclock torre (90c)',
   },
   en: {
-    navPlay: 'New game', navLeaderboard: 'Leaderboard', navAdmin: 'Admin', themeToggle: 'Dark mode/Light mode',
+    navPlay: 'New game', navLeaderboard: 'Leaderboard', navAdmin: 'Admin', themeToggle: '🌙/☀️',
     heroEyebrow: 'Futuristic tactical defense', heroTitle: 'Protect the core. Survive until the final wave collapses.',
     heroCopy: 'Place towers on fixed nodes, upgrade them to level 5, and stop drones, mech tanks, and ghost signals. You now have tactical abilities, kill combos, x2 speed, and threat previews.',
     pilotName: 'Pilot name', pilotPlaceholder: 'Ex: Lu', startSimulation: 'Confirm match', loginCopy: 'No login required. The leaderboard stores name, score, waves, and kills.',
