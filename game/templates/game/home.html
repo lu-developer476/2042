@@ -35,6 +35,7 @@
             <button id="start-game" class="button primary" data-i18n="startSimulation">Confirmar partida y jugar</button>
             <p class="microcopy" data-i18n="loginCopy">No requiere login. El ranking guarda nombre, score, oleadas y bajas.</p>
           </div>
+          <p class="microcopy"><strong>Atajos:</strong> Espacio pausa/reanuda · N inicia oleada · 1/2/3 selecciona torres · M silencia audio · R reinicia.</p>
             </div>
           </details>
 
@@ -66,6 +67,9 @@
             <button id="pause-game" class="button ghost" disabled data-i18n="pause">Pausar</button>
             <button id="restart-game" class="button danger" data-i18n="restart">Reiniciar</button>
             <button id="speed-toggle" class="button ghost" data-i18n="speedToggle">Velocidad x2</button>
+            <button id="mute-audio" class="button ghost" type="button">Silenciar audio</button>
+            <label class="volume-control">Volumen <input id="volume-control" type="range" min="0" max="100" step="5" value="70" /></label>
+            <label class="microcopy"><input id="reduced-motion" type="checkbox" /> Reducir movimiento</label>
           </div>
 
           <div class="ability-row">
@@ -82,7 +86,8 @@
 
   <section class="game-panel board-only" aria-label="Tablero de juego">
     <div class="battlefield-wrap">
-      <canvas id="battlefield" width="960" height="540"></canvas>
+      <canvas id="battlefield" width="960" height="540" role="img" aria-label="Campo de batalla con rutas, nodos de torres y núcleo a defender"></canvas>
+      <div id="accessible-status" class="sr-only" aria-live="polite">Simulación lista.</div>
       <div id="overlay-message" class="overlay-message hidden"></div>
     </div>
   </section>

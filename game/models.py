@@ -6,6 +6,13 @@ class LeaderboardEntry(models.Model):
     score = models.PositiveIntegerField(default=0)
     waves_cleared = models.PositiveIntegerField(default=0)
     enemies_destroyed = models.PositiveIntegerField(default=0)
+    scenario = models.CharField(max_length=60, blank=True, default='')
+    duration_seconds = models.PositiveIntegerField(default=0)
+    difficulty = models.CharField(max_length=30, blank=True, default='normal')
+    towers_built = models.PositiveIntegerField(default=0)
+    towers_upgraded = models.PositiveIntegerField(default=0)
+    abilities_used = models.PositiveIntegerField(default=0)
+    game_seed = models.CharField(max_length=64, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

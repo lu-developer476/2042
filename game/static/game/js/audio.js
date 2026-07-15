@@ -1,6 +1,15 @@
 export const soundEngine = {
   context: null,
-  enabled: true,
+  enabled: localStorage.getItem('2042-audio-muted') !== 'true',
+  volume: Number(localStorage.getItem('2042-audio-volume') || 70) / 100,
+  setMuted(muted) {
+    this.enabled = !muted;
+    localStorage.setItem('2042-audio-muted', String(muted));
+  },
+  setVolume(value) {
+    this.volume = Math.max(0, Math.min(1, Number(value) / 100));
+    localStorage.setItem('2042-audio-volume', String(Math.round(this.volume * 100)));
+  },
   init() {
     if (!this.enabled) return null;
     if (!this.context) {
@@ -23,7 +32,7 @@ export const soundEngine = {
     oscillator.type = type;
     oscillator.frequency.setValueAtTime(frequency, start);
     gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
+    gain.gain.exponentialRampToValueAtTime(volume * this.volume, start + 0.012);
     gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
     oscillator.connect(gain);
     gain.connect(audio.destination);

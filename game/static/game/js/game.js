@@ -30,6 +30,10 @@ const endlessModeInput = document.getElementById('endless-mode');
 const playDialog = document.getElementById('play-dialog');
 const defenseStatusValue = document.getElementById('defense-status-value');
 const defenseStatusPanelValue = document.getElementById('defense-status-panel-value');
+const accessibleStatus = document.getElementById('accessible-status');
+const muteAudioButton = document.getElementById('mute-audio');
+const volumeControl = document.getElementById('volume-control');
+const reducedMotionInput = document.getElementById('reduced-motion');
 
 const hud = {
   hp: document.getElementById('hp-value'),
@@ -256,6 +260,8 @@ class Tower {
     state.credits -= this.upgradeCost;
     this.level += 1;
     this.applyUpgradeStats();
+    state.towersUpgraded += 1;
+    announce(`${this.type.name} mejorada a nivel ${this.level}.`);
     updateHud();
     renderSelectedTower();
     return true;
@@ -327,7 +333,7 @@ function drawEnemyShape(enemy) {
     ctx.fillStyle = '#241308';
     ctx.fillRect(-enemy.radius * 0.25, -enemy.radius * 1.25, enemy.radius * 1.35, enemy.radius * 0.45);
   } else if (enemy.typeKey === 'ghost') {
-    ctx.globalAlpha = 0.78 + Math.sin(performance.now() / 120) * 0.15;
+    ctx.globalAlpha = state.reducedMotion ? 0.9 : 0.78 + Math.sin(performance.now() / 120) * 0.15;
     ctx.beginPath();
     ctx.ellipse(0, 0, enemy.radius * 1.35, enemy.radius * 0.9, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -427,7 +433,12 @@ function getUniqueId() {
   return `tower-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function announce(message) {
+  if (accessibleStatus) accessibleStatus.textContent = message;
+}
+
 function createFloatingText(x, y, text, color = '#ffffff') {
+  if (state.reducedMotion) return;
   state.floatingTexts.push({ x, y, text, color, alpha: 1, life: 0.8 });
 }
 
@@ -469,6 +480,11 @@ function resetState() {
   state.speedMultiplier = 1;
   state.combo = 1;
   state.comboTimer = 0;
+  state.startedAt = null;
+  state.towersBuilt = 0;
+  state.towersUpgraded = 0;
+  state.abilitiesUsed = 0;
+  state.gameSeed = '';
   nodes = deepCloneNodes();
   overlayMessage.classList.remove('hidden');
   overlayMessage.innerHTML = '2042 // Simulación lista<br><small>Elegí un nombre y arrancá.</small>';
@@ -486,6 +502,9 @@ function startGame() {
   soundEngine.play('start');
   state.started = true;
   state.playerName = playerNameInput.value.trim() || 'Piloto Anónimo';
+  state.startedAt = Date.now();
+  state.gameSeed = `${getActiveScenario().key}-${state.difficulty}-${state.startedAt.toString(36)}`;
+  state.scenarioName = getActiveScenario().name;
   overlayMessage.classList.add('hidden');
   nextWaveButton.disabled = false;
   pauseButton.disabled = false;
@@ -493,6 +512,7 @@ function startGame() {
   if (playDialog?.open) playDialog.close();
   renderScenarioPicker();
   renderDifficultyPicker();
+  announce(`Partida iniciada en ${state.scenarioName}, dificultad ${state.difficulty}.`);
   updateHud();
 }
 
@@ -684,6 +704,7 @@ function finishGame(victory) {
   pauseButton.disabled = true;
   startButton.disabled = false;
   updateDefenseStatus();
+  announce(`${victory ? 'Victoria' : 'Derrota'}. Score final ${state.score}.`);
 
   soundEngine.play(victory ? 'start' : 'end');
   const title = victory ? 'SECTOR ASEGURADO' : 'CORE COLAPSADO';
@@ -755,7 +776,7 @@ function drawPaths(scenario) {
     ctx.stroke();
 
     ctx.setLineDash([16, 16]);
-    ctx.lineDashOffset = -performance.now() / (80 + index * 18);
+    ctx.lineDashOffset = state.reducedMotion ? 0 : -performance.now() / (80 + index * 18);
     ctx.strokeStyle = index === 0 ? scenario.palette.accent : scenario.palette.hazard;
     ctx.lineWidth = 4;
     ctx.beginPath();
@@ -935,6 +956,8 @@ function handleCanvasClick(event) {
   node.occupied = tower.id;
   soundEngine.play('build');
   state.towers.push(tower);
+  state.towersBuilt += 1;
+  announce(`${tower.type.name} construida. Créditos restantes: ${state.credits}.`);
   state.selectedTowerId = tower.id;
   updateHud();
   renderSelectedTower();
@@ -953,6 +976,8 @@ empButton.addEventListener('click', () => {
   if (empButton.disabled) return;
   soundEngine.play('ability');
   state.credits -= 160;
+  state.abilitiesUsed += 1;
+  announce('EMP global activado.');
   state.enemies.forEach((enemy) => { enemy.hp -= 45; enemy.speed = enemy.baseSpeed * 0.45; enemy.slowTimer = 2.5; });
   [...state.enemies].filter((enemy) => enemy.hp <= 0).forEach(destroyEnemy);
   createFloatingText(430, 80, 'EMP', '#6df2ff');
@@ -962,6 +987,8 @@ repairButton.addEventListener('click', () => {
   if (repairButton.disabled) return;
   soundEngine.play('ability');
   state.credits -= 120;
+  state.abilitiesUsed += 1;
+  announce('Reparación del core activada.');
   state.hp = Math.min(state.maxHp, state.hp + 5);
   createFloatingText(865, 420, '+5 CORE', '#6cff95');
   updateHud();
@@ -972,6 +999,8 @@ overclockButton.addEventListener('click', () => {
   if (!tower) return;
   soundEngine.play('ability');
   state.credits -= 90;
+  state.abilitiesUsed += 1;
+  announce('Overclock de torre activado.');
   tower.overclockTimer = 8;
   createFloatingText(tower.x - 22, tower.y - 45, 'OVERCLOCK', '#ffc869');
   updateHud();
@@ -1001,6 +1030,30 @@ endlessModeInput?.addEventListener('change', () => {
   updateHud();
   updateWavePreview();
 });
+muteAudioButton?.addEventListener('click', () => {
+  soundEngine.setMuted(soundEngine.enabled);
+  muteAudioButton.textContent = soundEngine.enabled ? 'Silenciar audio' : 'Activar audio';
+});
+volumeControl?.addEventListener('input', () => soundEngine.setVolume(volumeControl.value));
+reducedMotionInput?.addEventListener('change', () => {
+  state.reducedMotion = reducedMotionInput.checked;
+  localStorage.setItem('2042-reduced-motion', String(state.reducedMotion));
+  if (document.documentElement) document.documentElement.dataset.reducedMotion = String(state.reducedMotion);
+});
+document.addEventListener('keydown', (event) => {
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return;
+  if (event.key === ' ') { event.preventDefault(); pauseButton.click(); }
+  if (event.key.toLowerCase() === 'n') nextWaveButton.click();
+  if (event.key.toLowerCase() === 'm') muteAudioButton?.click();
+  if (event.key.toLowerCase() === 'r') restartButton.click();
+  const towerIndex = Number(event.key) - 1;
+  const tower = Object.values(towerTypes)[towerIndex];
+  if (tower) { state.selectedTowerType = tower.key; state.selectedTowerId = null; renderShop(); renderSelectedTower(); announce(`${tower.name} seleccionada.`); }
+});
+if (volumeControl) volumeControl.value = Math.round(soundEngine.volume * 100);
+if (muteAudioButton) muteAudioButton.textContent = soundEngine.enabled ? 'Silenciar audio' : 'Activar audio';
+if (reducedMotionInput) reducedMotionInput.checked = state.reducedMotion;
+if (document.documentElement) document.documentElement.dataset.reducedMotion = String(state.reducedMotion);
 canvas.addEventListener('click', handleCanvasClick);
 window.addEventListener('languagechange', () => { renderShop(); renderSelectedTower(); updateWavePreview(); });
 
