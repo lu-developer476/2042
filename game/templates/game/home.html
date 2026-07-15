@@ -57,28 +57,19 @@
       <canvas id="battlefield" width="960" height="540" role="img" aria-label="Campo de batalla con rutas, nodos de torres y núcleo a defender"></canvas>
       <div id="accessible-status" class="sr-only" aria-live="polite">Simulación lista.</div>
       <div id="overlay-message" class="overlay-message hidden"></div>
+      <div id="node-command-popover" class="node-command-popover hidden" aria-live="polite">
+        <button id="node-command-close" class="node-command-close" type="button" aria-label="Cerrar opciones del nodo">×</button>
+        <p id="node-command-kicker" class="node-command-kicker">Gestionar</p>
+        <h3 id="node-command-title">Nodo de torre</h3>
+        <div id="tower-shop" class="tower-shop"></div>
+        <div id="selected-tower-panel" class="selected-tower-panel">
+          <p class="microcopy" data-i18n="selectedHelp">Seleccioná una torre ya construida para ver stats, nivel y mejora siguiente.</p>
+        </div>
+        <p id="node-command-help" class="microcopy" data-i18n="shopHelp">Elegí una torre para construirla en este nodo.</p>
+      </div>
     </div>
 
     <div class="board-command-grid" aria-label="Opciones de partida disponibles desde el tablero">
-      <details class="play-dialog-section board-command-section" open aria-label="Torres">
-        <summary class="play-popover-trigger"><span>Gestionar</span><strong>Torres</strong></summary>
-        <div class="play-popover-panel">
-          <h3>Torres</h3>
-          <div id="tower-shop" class="tower-shop"></div>
-          <p class="microcopy" data-i18n="shopHelp">Click en un nodo libre para construir la torre seleccionada.</p>
-        </div>
-      </details>
-
-      <details class="play-dialog-section board-command-section" aria-label="Torre seleccionada">
-        <summary class="play-popover-trigger"><span>Ver</span><strong>Torre seleccionada</strong></summary>
-        <div class="play-popover-panel">
-          <h3>Torre seleccionada</h3>
-          <div id="selected-tower-panel" class="selected-tower-panel">
-            <p class="microcopy" data-i18n="selectedHelp">Seleccioná una torre ya construida para ver stats, nivel y mejora siguiente.</p>
-          </div>
-        </div>
-      </details>
-
       <details class="play-dialog-section board-command-section controls-card" open aria-label="Controles de partida">
         <summary class="play-popover-trigger"><span>Acciones</span><strong>Controles</strong></summary>
         <div class="play-popover-panel">
