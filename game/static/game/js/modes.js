@@ -9,6 +9,8 @@ export const scenarioModifiers = {
   'neon-docks': { name: 'Logística eficiente', creditsPerWave: 20, description: '+20c al limpiar oleada.' },
   'ember-wastes': { name: 'Calor extremo', enemySpeed: 1.06, description: 'Enemigos 6% más rápidos.' },
   'aurora-ruins': { name: 'Ecos de energía', towerRange: 1.05, description: 'Torres con 5% más rango.' },
+  'orbital-bastion': { name: 'Suministro orbital', creditsPerWave: 10, towerRange: 1.03, description: '+10c y +3% de rango al limpiar oleada.' },
+  'bioforge-canopy': { name: 'Mutación acelerada', enemySpeed: 1.03, creditsPerWave: 15, description: 'Enemigos 3% más rápidos, +15c por oleada.' },
 };
 
 export function createEndlessWave(waveNumber) {

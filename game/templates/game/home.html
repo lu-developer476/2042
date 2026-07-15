@@ -27,6 +27,8 @@
                     <option value="0">Muelles de Neón</option>
                     <option value="1">Desierto Ígneo</option>
                     <option value="2">Ruinas Aurora</option>
+                    <option value="3">Bastión Orbital</option>
+                    <option value="4">Dosel Bioforja</option>
                   </select>
                 </div>
                 <div>
@@ -40,9 +42,10 @@
                 </div>
                 <label class="microcopy endless-toggle">
                   <input id="endless-mode" type="checkbox" />
-                  Modo infinito después de la oleada 8
+                  Modo infinito después de la oleada 25
                 </label>
                 <button id="start-game" class="button primary" data-i18n="startSimulation">Confirmar partida y jugar</button>
+                <button id="resume-progress" class="button ghost" type="button" disabled>Retomar progreso guardado</button>
               </div>
               <p class="microcopy"><strong>Atajos:</strong> Espacio pausa/reanuda · N inicia oleada · 1/2/3 selecciona torres · M silencia audio · R reinicia.</p>
             </div>
@@ -78,6 +81,8 @@
           <div class="controls-row">
             <button id="next-wave" class="button primary" disabled data-i18n="startWave">Iniciar oleada</button>
             <button id="pause-game" class="button ghost" disabled data-i18n="pause">Pausar</button>
+            <button id="save-stage" class="button ghost" disabled>Guardar etapa</button>
+            <button id="end-run" class="button danger" disabled>Finalizar partida</button>
             <button id="restart-game" class="button danger" data-i18n="restart">Reiniciar</button>
             <button id="speed-toggle" class="button ghost" data-i18n="speedToggle">Velocidad x2</button>
             <button id="mute-audio" class="button ghost" type="button">Silenciar audio</button>
