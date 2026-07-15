@@ -19,6 +19,48 @@ const translations = {
   },
 };
 
+
+function closeDialog(dialog) {
+  if (!dialog) return;
+  if (typeof dialog.close === 'function' && dialog.open) {
+    dialog.close();
+    return;
+  }
+  dialog.removeAttribute('open');
+  dialog.classList.remove('is-open');
+}
+
+function openDialog(dialog) {
+  if (!dialog) return;
+  if (typeof dialog.showModal === 'function') {
+    if (!dialog.open) dialog.showModal();
+    return;
+  }
+  dialog.setAttribute('open', '');
+  dialog.classList.add('is-open');
+}
+
+function initDialogTriggers() {
+  document.querySelectorAll('[data-dialog-target]').forEach((trigger) => {
+    if (trigger.dataset.dialogReady === 'true') return;
+    trigger.dataset.dialogReady = 'true';
+    trigger.addEventListener('click', () => {
+      const dialog = document.getElementById(trigger.dataset.dialogTarget);
+      openDialog(dialog);
+    });
+  });
+
+  document.querySelectorAll('.info-dialog').forEach((dialog) => {
+    if (dialog.dataset.dialogCloseReady === 'true') return;
+    dialog.dataset.dialogCloseReady = 'true';
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog || event.target.closest('[data-dialog-close]')) {
+        closeDialog(dialog);
+      }
+    });
+  });
+}
+
 function applyLanguage(language) {
   const dictionary = translations[language] || translations.es;
   document.documentElement.lang = language;
@@ -42,6 +84,7 @@ const storedTheme = localStorage.getItem('2042-theme') || 'dark';
 applyTheme(storedTheme);
 
 document.addEventListener('DOMContentLoaded', () => {
+  initDialogTriggers();
   applyLanguage(storedLanguage);
   document.getElementById('language-toggle')?.addEventListener('click', () => {
     const next = document.documentElement.lang === 'es' ? 'en' : 'es';
@@ -55,4 +98,4 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-window.I18N_2042 = { translations, applyLanguage };
+window.I18N_2042 = { translations, applyLanguage, initDialogTriggers, openDialog, closeDialog };
