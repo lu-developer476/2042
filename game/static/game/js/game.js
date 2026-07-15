@@ -1,5 +1,5 @@
 import { soundEngine } from './audio.js';
-import { scenarios } from './scenarios.js';
+import { scenarios, getScenarioLayout, getStageForWave, STAGE_SIZE, TOTAL_STAGES } from './scenarios.js';
 import { towerTypes } from './towers.js';
 import { enemyTypes, wavePlan } from './waves.js';
 import { state } from './state.js';
@@ -12,6 +12,9 @@ const startButton = document.getElementById('start-game');
 const nextWaveButton = document.getElementById('next-wave');
 const pauseButton = document.getElementById('pause-game');
 const restartButton = document.getElementById('restart-game');
+const saveStageButton = document.getElementById('save-stage');
+const endRunButton = document.getElementById('end-run');
+const resumeProgressButton = document.getElementById('resume-progress');
 const overlayMessage = document.getElementById('overlay-message');
 const towerShop = document.getElementById('tower-shop');
 const selectedTowerPanel = document.getElementById('selected-tower-panel');
@@ -41,6 +44,7 @@ const accessibleStatus = document.getElementById('accessible-status');
 const muteAudioButton = document.getElementById('mute-audio');
 const volumeControl = document.getElementById('volume-control');
 const reducedMotionInput = document.getElementById('reduced-motion');
+const PROGRESS_STORAGE_KEY = '2042-stage-progress';
 
 const hud = {
   hp: document.getElementById('hp-value'),
@@ -97,8 +101,16 @@ function initInfoDialogs() {
 
 initInfoDialogs();
 
-function getActiveScenario() {
+function getBaseScenario() {
   return scenarios[state.scenarioIndex || 0];
+}
+
+function getActiveStage() {
+  return getStageForWave(Math.max(state.currentWaveIndex + 1, 0));
+}
+
+function getActiveScenario() {
+  return getScenarioLayout(getBaseScenario(), Math.max(state.currentWaveIndex + 1, 0), state.difficulty);
 }
 
 function getDifficulty() {
@@ -106,7 +118,7 @@ function getDifficulty() {
 }
 
 function getScenarioModifier() {
-  return scenarioModifiers[getActiveScenario().key] || {};
+  return scenarioModifiers[getBaseScenario().key] || {};
 }
 
 function deepCloneNodes() {
@@ -499,12 +511,15 @@ function resetState() {
   overlayMessage.innerHTML = '2042 // Simulación lista<br><small>Elegí un nombre y arrancá.</small>';
   nextWaveButton.disabled = true;
   pauseButton.disabled = true;
+  saveStageButton.disabled = true;
+  endRunButton.disabled = true;
   pauseButton.textContent = 'Pausar';
   renderShop();
   renderSelectedTower();
   renderScenarioPicker();
   renderDifficultyPicker();
   updateHud();
+  updateProgressButtons();
 }
 
 function startGame() {
@@ -513,17 +528,20 @@ function startGame() {
   state.started = true;
   state.playerName = playerNameInput.value.trim() || 'Piloto Anónimo';
   state.startedAt = Date.now();
-  state.gameSeed = `${getActiveScenario().key}-${state.difficulty}-${state.startedAt.toString(36)}`;
-  state.scenarioName = getActiveScenario().name;
+  state.gameSeed = `${getBaseScenario().key}-${state.difficulty}-${state.startedAt.toString(36)}`;
+  state.scenarioName = getBaseScenario().name;
   overlayMessage.classList.add('hidden');
   nextWaveButton.disabled = false;
   pauseButton.disabled = false;
+  saveStageButton.disabled = true;
+  endRunButton.disabled = false;
   startButton.disabled = true;
   if (playDialog?.open) playDialog.close();
   renderScenarioPicker();
   renderDifficultyPicker();
   announce(`Partida iniciada en ${state.scenarioName}, dificultad ${state.difficulty}.`);
   updateHud();
+  updateProgressButtons();
 }
 
 function getDefenseStatusText() {
@@ -553,7 +571,7 @@ function updateHud() {
   hud.score.textContent = state.score;
   comboValue.textContent = `x${state.combo.toFixed(2)}`;
   speedValue.textContent = `${state.speedMultiplier}x`;
-  scenarioValue.textContent = getActiveScenario().name;
+  scenarioValue.textContent = `${getBaseScenario().name} · Etapa ${getActiveStage()}/${TOTAL_STAGES}`;
   updateDefenseStatus();
   updateAbilityButtons();
 }
@@ -710,6 +728,118 @@ function updateAbilityButtons() {
   overclockButton.disabled = !state.started || state.gameOver || state.credits < 90 || !state.selectedTowerId;
 }
 
+
+function serializeProgress() {
+  return {
+    version: 1,
+    playerName: state.playerName,
+    scenarioIndex: state.scenarioIndex,
+    difficulty: state.difficulty,
+    endlessMode: state.endlessMode,
+    currentWaveIndex: state.currentWaveIndex,
+    hp: state.hp,
+    maxHp: state.maxHp,
+    credits: state.credits,
+    kills: state.kills,
+    score: state.score,
+    towersBuilt: state.towersBuilt,
+    towersUpgraded: state.towersUpgraded,
+    abilitiesUsed: state.abilitiesUsed,
+    startedAt: state.startedAt,
+    gameSeed: state.gameSeed,
+  };
+}
+
+function hasSavedProgress() {
+  return Boolean(localStorage.getItem(PROGRESS_STORAGE_KEY));
+}
+
+function updateProgressButtons() {
+  const atCheckpoint = state.started && !state.gameOver && !state.waveInProgress && !state.pendingSpawn && state.currentWaveIndex >= 0 && (state.currentWaveIndex + 1) % STAGE_SIZE === 0;
+  if (saveStageButton) saveStageButton.disabled = !atCheckpoint;
+  if (endRunButton) endRunButton.disabled = !state.started || state.gameOver;
+  if (resumeProgressButton) resumeProgressButton.disabled = state.started || !hasSavedProgress();
+}
+
+function saveStageProgress() {
+  if (saveStageButton?.disabled) return false;
+  localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(serializeProgress()));
+  announce(`Progreso guardado en etapa ${getActiveStage()}.`);
+  overlayMessage.classList.remove('hidden');
+  overlayMessage.innerHTML = `PROGRESO GUARDADO<br><small>Podés continuar ahora o retomar desde esta etapa luego.</small>`;
+  updateProgressButtons();
+  return true;
+}
+
+function prepareNextStage() {
+  state.towers = [];
+  state.enemies = [];
+  state.projectiles = [];
+  state.floatingTexts = [];
+  state.selectedTowerId = null;
+  state.selectedTowerType = null;
+  nodes = deepCloneNodes();
+  closeNodeCommand();
+  renderShop();
+  renderSelectedTower();
+}
+
+function completeStage() {
+  const completedStage = getStageForWave(state.currentWaveIndex);
+  if (completedStage >= TOTAL_STAGES) {
+    finishGame(true);
+    return;
+  }
+  prepareNextStage();
+  nextWaveButton.disabled = false;
+  overlayMessage.classList.remove('hidden');
+  overlayMessage.innerHTML = `ETAPA ${completedStage} COMPLETADA<br><small>Continuá a la etapa ${completedStage + 1}, guardá el progreso o finalizá la partida.</small>`;
+  announce(`Etapa ${completedStage} completada. Nuevas rutas y emplazamientos disponibles.`);
+  updateHud();
+  updateWavePreview();
+  updateProgressButtons();
+}
+
+function resumeSavedProgress() {
+  const raw = localStorage.getItem(PROGRESS_STORAGE_KEY);
+  if (!raw || state.started) return;
+  let saved;
+  try { saved = JSON.parse(raw); } catch { return; }
+  resetState();
+  Object.assign(state, {
+    scenarioIndex: saved.scenarioIndex ?? 0,
+    difficulty: saved.difficulty || 'normal',
+    endlessMode: Boolean(saved.endlessMode),
+    currentWaveIndex: saved.currentWaveIndex ?? -1,
+    hp: saved.hp,
+    maxHp: saved.maxHp,
+    credits: saved.credits,
+    kills: saved.kills || 0,
+    score: saved.score || 0,
+    towersBuilt: saved.towersBuilt || 0,
+    towersUpgraded: saved.towersUpgraded || 0,
+    abilitiesUsed: saved.abilitiesUsed || 0,
+    playerName: saved.playerName || 'Piloto Anónimo',
+    startedAt: saved.startedAt || Date.now(),
+    gameSeed: saved.gameSeed || '',
+    started: true,
+    gameOver: false,
+  });
+  playerNameInput.value = state.playerName;
+  nodes = deepCloneNodes();
+  overlayMessage.classList.remove('hidden');
+  overlayMessage.innerHTML = `PROGRESO RESTAURADO<br><small>Etapa ${getStageForWave(state.currentWaveIndex + 1)}/${TOTAL_STAGES}. Iniciá la siguiente oleada.</small>`;
+  nextWaveButton.disabled = false;
+  pauseButton.disabled = false;
+  startButton.disabled = true;
+  soundEngine.startAmbience();
+  renderScenarioPicker();
+  renderDifficultyPicker();
+  updateHud();
+  updateWavePreview();
+  updateProgressButtons();
+}
+
 function spawnWave() {
   if (!state.started || state.waveInProgress || (!state.endlessMode && state.currentWaveIndex + 1 >= wavePlan.length) || state.gameOver) return;
   soundEngine.play('wave');
@@ -718,6 +848,7 @@ function spawnWave() {
   state.pendingSpawn = { queue, timer: 0.6, routeCursor: 0 };
   state.waveInProgress = true;
   nextWaveButton.disabled = true;
+  updateProgressButtons();
   updateHud();
   updateWavePreview();
   overlayMessage.classList.add('hidden');
@@ -744,9 +875,14 @@ function updateSpawns(dt) {
       const scenarioBonus = getScenarioModifier().creditsPerWave || 0;
       state.credits += 80 + state.currentWaveIndex * 15 + scenarioBonus;
       state.score += 100;
+      if ((state.currentWaveIndex + 1) % STAGE_SIZE === 0) {
+        completeStage();
+        return;
+      }
       createFloatingText(820, 60, `BONUS +${80 + state.currentWaveIndex * 15 + scenarioBonus}c`, '#6df2ff');
       nextWaveButton.disabled = false;
       updateHud();
+      updateProgressButtons();
       updateWavePreview();
     }
   }
@@ -759,14 +895,17 @@ function finishGame(victory) {
   state.pendingSpawn = null;
   nextWaveButton.disabled = true;
   pauseButton.disabled = true;
+  saveStageButton.disabled = true;
+  endRunButton.disabled = true;
   startButton.disabled = false;
   updateDefenseStatus();
+  updateProgressButtons();
   announce(`${victory ? 'Victoria' : 'Derrota'}. Score final ${state.score}.`);
 
   soundEngine.play(victory ? 'start' : 'end');
   const title = victory ? 'SECTOR ASEGURADO' : 'CORE COLAPSADO';
   const subtitle = victory
-    ? `Sobreviviste a las ${state.totalWaves} oleadas.`
+    ? `Sobreviviste a las ${state.totalWaves} oleadas en ${TOTAL_STAGES} etapas.`
     : `Llegaste hasta la oleada ${Math.max(state.currentWaveIndex + 1, 0)}.`;
 
   overlayMessage.classList.remove('hidden');
@@ -1134,6 +1273,14 @@ pauseButton.addEventListener('click', () => {
     overlayMessage.classList.add('hidden');
   }
 });
+saveStageButton?.addEventListener('click', saveStageProgress);
+resumeProgressButton?.addEventListener('click', resumeSavedProgress);
+endRunButton?.addEventListener('click', () => {
+  if (!state.started || state.gameOver) return;
+  if (!saveStageButton?.disabled) saveStageProgress();
+  finishGame(false);
+});
+
 restartButton.addEventListener('click', () => {
   soundEngine.play('ui');
   soundEngine.stopAmbience();
@@ -1184,6 +1331,7 @@ document.addEventListener('keydown', (event) => {
 if (volumeControl) volumeControl.value = Math.round(soundEngine.volume * 100);
 if (muteAudioButton) muteAudioButton.textContent = soundEngine.enabled ? 'Silenciar audio' : 'Activar audio';
 if (reducedMotionInput) reducedMotionInput.checked = state.reducedMotion;
+updateProgressButtons();
 if (document.documentElement) document.documentElement.dataset.reducedMotion = String(state.reducedMotion);
 nodeCommandClose?.addEventListener('click', closeNodeCommand);
 canvas.addEventListener('click', handleCanvasClick);
