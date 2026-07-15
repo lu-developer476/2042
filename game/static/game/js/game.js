@@ -15,6 +15,11 @@ const restartButton = document.getElementById('restart-game');
 const overlayMessage = document.getElementById('overlay-message');
 const towerShop = document.getElementById('tower-shop');
 const selectedTowerPanel = document.getElementById('selected-tower-panel');
+const nodeCommandPopover = document.getElementById('node-command-popover');
+const nodeCommandClose = document.getElementById('node-command-close');
+const nodeCommandKicker = document.getElementById('node-command-kicker');
+const nodeCommandTitle = document.getElementById('node-command-title');
+const nodeCommandHelp = document.getElementById('node-command-help');
 const playerNameInput = document.getElementById('player-name');
 const speedButton = document.getElementById('speed-toggle');
 const empButton = document.getElementById('emp-ability');
@@ -109,6 +114,7 @@ function deepCloneNodes() {
 }
 
 let nodes = [];
+let activeCommandNode = null;
 
 class Enemy {
   constructor(typeKey, routeIndex = 0) {
@@ -262,6 +268,7 @@ class Tower {
     announce(`${this.type.name} mejorada a nivel ${this.level}.`);
     updateHud();
     renderSelectedTower();
+    updateAbilityButtons();
     return true;
   }
 
@@ -484,6 +491,7 @@ function resetState() {
   state.abilitiesUsed = 0;
   state.gameSeed = '';
   nodes = deepCloneNodes();
+  closeNodeCommand();
   overlayMessage.classList.remove('hidden');
   overlayMessage.innerHTML = '2042 // Simulación lista<br><small>Elegí un nombre y arrancá.</small>';
   nextWaveButton.disabled = true;
@@ -598,6 +606,7 @@ function renderDifficultyPicker() {
 }
 
 function renderShop() {
+  if (!towerShop) return;
   towerShop.innerHTML = '';
   Object.values(towerTypes).forEach((towerType) => {
     const button = document.createElement('button');
@@ -610,7 +619,12 @@ function renderShop() {
         <li>Costo inicial: ${towerType.cost}</li>
       </ul>
     `;
+    button.disabled = !!activeCommandNode?.occupied;
     button.addEventListener('click', () => {
+      if (activeCommandNode && !activeCommandNode.occupied) {
+        buildTowerAtNode(activeCommandNode, towerType.key);
+        return;
+      }
       state.selectedTowerType = towerType.key;
       state.selectedTowerId = null;
       renderShop();
@@ -621,6 +635,7 @@ function renderShop() {
 }
 
 function renderSelectedTower() {
+  if (!selectedTowerPanel) return;
   const tower = state.towers.find((entry) => entry.id === state.selectedTowerId);
   if (!tower) {
     selectedTowerPanel.innerHTML = '<p class="microcopy">Seleccioná una torre construida para inspeccionarla o mejorarla.</p>';
@@ -940,23 +955,48 @@ function getCanvasCoordinates(event) {
   };
 }
 
-function handleCanvasClick(event) {
-  if (!state.started || state.gameOver) return;
-  const { x, y } = getCanvasCoordinates(event);
+function positionNodeCommand(node) {
+  if (!nodeCommandPopover) return;
+  const left = (node.x / canvas.width) * 100;
+  const top = (node.y / canvas.height) * 100;
+  nodeCommandPopover.style.left = `${left}%`;
+  nodeCommandPopover.style.top = `${top}%`;
+}
 
-  const clickedTower = state.towers.find((tower) => Math.hypot(tower.x - x, tower.y - y) <= 30);
-  if (clickedTower) {
-    state.selectedTowerId = clickedTower.id;
+function closeNodeCommand() {
+  activeCommandNode = null;
+  nodeCommandPopover?.classList.add('hidden');
+}
+
+function openNodeCommand(node) {
+  activeCommandNode = node;
+  const tower = node.occupied ? state.towers.find((entry) => entry.id === node.occupied) : null;
+  if (tower) {
+    state.selectedTowerId = tower.id;
     state.selectedTowerType = null;
-    renderShop();
-    renderSelectedTower();
-    return;
+    nodeCommandKicker.textContent = 'Ver';
+    nodeCommandTitle.textContent = 'Torre seleccionada';
+    nodeCommandHelp.textContent = 'Mejorá la torre u overclockeala desde acciones cuando corresponda.';
+    towerShop.classList.add('hidden');
+    selectedTowerPanel.classList.remove('hidden');
+  } else {
+    state.selectedTowerId = null;
+    nodeCommandKicker.textContent = 'Gestionar';
+    nodeCommandTitle.textContent = 'Construir torre';
+    nodeCommandHelp.textContent = 'Elegí una torre para construirla en este nodo.';
+    towerShop.classList.remove('hidden');
+    selectedTowerPanel.classList.add('hidden');
   }
+  renderShop();
+  renderSelectedTower();
+  updateAbilityButtons();
+  positionNodeCommand(node);
+  nodeCommandPopover?.classList.remove('hidden');
+}
 
-  const node = nodes.find((entry) => Math.hypot(entry.x - x, entry.y - y) <= 28);
-  if (!node || node.occupied || !state.selectedTowerType) return;
-
-  const towerType = towerTypes[state.selectedTowerType];
+function buildTowerAtNode(node, towerTypeKey) {
+  if (!node || node.occupied) return;
+  const towerType = towerTypes[towerTypeKey];
   if (state.credits < towerType.cost) {
     soundEngine.play('fail');
     createFloatingText(node.x - 15, node.y - 34, 'SIN CRÉDITOS', '#ff7ca7');
@@ -964,16 +1004,27 @@ function handleCanvasClick(event) {
   }
 
   state.credits -= towerType.cost;
-  const tower = new Tower(state.selectedTowerType, node);
+  const tower = new Tower(towerTypeKey, node);
   node.occupied = tower.id;
   soundEngine.play('build');
   state.towers.push(tower);
   state.towersBuilt += 1;
   announce(`${tower.type.name} construida. Créditos restantes: ${state.credits}.`);
   state.selectedTowerId = tower.id;
+  state.selectedTowerType = null;
   updateHud();
-  renderSelectedTower();
-  updateAbilityButtons();
+  openNodeCommand(node);
+}
+
+function handleCanvasClick(event) {
+  if (!state.started || state.gameOver) return;
+  const { x, y } = getCanvasCoordinates(event);
+  const node = nodes.find((entry) => Math.hypot(entry.x - x, entry.y - y) <= 30);
+  if (node) {
+    openNodeCommand(node);
+    return;
+  }
+  closeNodeCommand();
 }
 
 startButton.addEventListener('click', startGame);
@@ -1081,6 +1132,7 @@ if (volumeControl) volumeControl.value = Math.round(soundEngine.volume * 100);
 if (muteAudioButton) muteAudioButton.textContent = soundEngine.enabled ? 'Silenciar audio' : 'Activar audio';
 if (reducedMotionInput) reducedMotionInput.checked = state.reducedMotion;
 if (document.documentElement) document.documentElement.dataset.reducedMotion = String(state.reducedMotion);
+nodeCommandClose?.addEventListener('click', closeNodeCommand);
 canvas.addEventListener('click', handleCanvasClick);
 window.addEventListener('languagechange', () => { renderShop(); renderSelectedTower(); updateWavePreview(); });
 
