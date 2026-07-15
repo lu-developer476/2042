@@ -26,6 +26,8 @@ const speedValue = document.getElementById('speed-value');
 const scenarioValue = document.getElementById('scenario-value');
 const scenarioPicker = document.getElementById('scenario-picker');
 const difficultyPicker = document.getElementById('difficulty-picker');
+const scenarioSelect = document.getElementById('scenario-select');
+const difficultySelect = document.getElementById('difficulty-select');
 const endlessModeInput = document.getElementById('endless-mode');
 const playDialog = document.getElementById('play-dialog');
 const defenseStatusValue = document.getElementById('defense-status-value');
@@ -545,7 +547,19 @@ function updateHud() {
 }
 
 
+function syncSetupSelects() {
+  if (scenarioSelect) {
+    scenarioSelect.value = String(state.scenarioIndex || 0);
+    scenarioSelect.disabled = state.started;
+  }
+  if (difficultySelect) {
+    difficultySelect.value = state.difficulty;
+    difficultySelect.disabled = state.started;
+  }
+}
+
 function renderScenarioPicker() {
+  if (!scenarioPicker) { syncSetupSelects(); return; }
   scenarioPicker.innerHTML = '';
   scenarios.forEach((scenario, index) => {
     const button = document.createElement('button');
@@ -562,9 +576,10 @@ function renderScenarioPicker() {
     });
     scenarioPicker.appendChild(button);
   });
+  syncSetupSelects();
 }
 function renderDifficultyPicker() {
-  if (!difficultyPicker) return;
+  if (!difficultyPicker) { syncSetupSelects(); return; }
   difficultyPicker.innerHTML = '';
   Object.values(difficulties).forEach((difficulty) => {
     const button = document.createElement('button');
@@ -579,6 +594,7 @@ function renderDifficultyPicker() {
     });
     difficultyPicker.appendChild(button);
   });
+  syncSetupSelects();
 }
 
 function renderShop() {
@@ -1018,6 +1034,21 @@ pauseButton.addEventListener('click', () => {
 restartButton.addEventListener('click', () => {
   soundEngine.play('ui');
   startButton.disabled = false;
+  resetState();
+});
+scenarioSelect?.addEventListener('change', () => {
+  if (state.started) return;
+  const scenarioIndex = Number(scenarioSelect.value);
+  if (!Number.isInteger(scenarioIndex) || !scenarios[scenarioIndex]) return;
+  state.scenarioIndex = scenarioIndex;
+  nodes = deepCloneNodes();
+  renderScenarioPicker();
+  updateHud();
+});
+difficultySelect?.addEventListener('change', () => {
+  if (state.started) return;
+  if (!difficulties[difficultySelect.value]) return;
+  state.difficulty = difficultySelect.value;
   resetState();
 });
 endlessModeInput?.addEventListener('change', () => {

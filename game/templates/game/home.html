@@ -18,12 +18,23 @@
       <label class="label" for="player-name" data-i18n="pilotName">Nombre del piloto</label>
       <input id="player-name" class="input" type="text" maxlength="30" placeholder="Ej: Lu" data-i18n-placeholder="pilotPlaceholder" />
       <div>
-        <label class="label">Escenario</label>
-        <div id="scenario-picker" class="scenario-picker"></div>
+        <label class="label" for="scenario-select">Escenario</label>
+        <select id="scenario-select" class="input setup-select" aria-label="Elegir escenario">
+          <option value="0">Muelles de Neón</option>
+          <option value="1">Desierto Ígneo</option>
+          <option value="2">Ruinas Aurora</option>
+        </select>
+        <div id="scenario-picker" class="scenario-picker" aria-label="Escenarios rápidos"></div>
       </div>
       <div>
-        <label class="label">Dificultad</label>
-        <div id="difficulty-picker" class="scenario-picker"></div>
+        <label class="label" for="difficulty-select">Dificultad</label>
+        <select id="difficulty-select" class="input setup-select" aria-label="Elegir dificultad">
+          <option value="easy">Fácil</option>
+          <option value="normal" selected>Normal</option>
+          <option value="hard">Difícil</option>
+          <option value="nightmare">Pesadilla</option>
+        </select>
+        <div id="difficulty-picker" class="scenario-picker" aria-label="Dificultades rápidas"></div>
       </div>
       <label class="microcopy endless-toggle">
         <input id="endless-mode" type="checkbox" />
