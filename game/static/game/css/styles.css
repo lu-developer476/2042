@@ -1407,3 +1407,63 @@ td { color: var(--muted); }
 .replace-tower-list {
   margin-top: 8px;
 }
+
+/* Center all user-facing text consistently across the interface. */
+body,
+input,
+select,
+textarea,
+button,
+table,
+th,
+td,
+summary,
+.panel-trigger,
+.info-dialog .tower-card,
+.node-command-popover .tower-card,
+.leaderboard-page td,
+.leaderboard-page td::before,
+.leaderboard-page td[colspan] {
+  text-align: center;
+}
+
+.brand,
+.navbar-status-trigger,
+.navbar-status-panel > span,
+.side-card,
+.side-metric,
+.hud-item,
+.intel-strip > div,
+.tower-card,
+.stat-list,
+.leaderboard-row span,
+.replay-summary,
+.node-command-popover,
+.ability-help div,
+.play-popover-trigger,
+.play-popover-panel,
+.dialog-card,
+.launch-panel-header {
+  justify-items: center;
+}
+
+.navbar-links,
+.navbar-status-menu,
+.preference-actions,
+.controls-row,
+.ability-row,
+.launch-panel-header,
+.volume-control,
+.endless-toggle {
+  justify-content: center;
+}
+
+.tower-card ul,
+.info-dialog .tower-card ul {
+  padding-left: 0;
+  list-style-position: inside;
+}
+
+.board-command-section .volume-control {
+  grid-template-columns: minmax(0, 1fr);
+}
