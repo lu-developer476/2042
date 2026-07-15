@@ -397,6 +397,7 @@ class Projectile {
         appliedDamage *= 2;
         createFloatingText(this.target.x, this.target.y - 24, 'CRIT', '#ffc869');
       }
+      appliedDamage = Math.round(appliedDamage);
       this.target.hp -= appliedDamage;
       createFloatingText(this.target.x, this.target.y - 12, `-${appliedDamage}`, this.isShock ? '#ffd166' : '#ffffff');
       if (this.isShock) {
