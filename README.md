@@ -155,3 +155,58 @@ python manage.py migrate
 ## Nota de arquitectura
 
 El juego corre visualmente en el navegador con JavaScript y Canvas. Django se encarga de renderizar páginas, exponer APIs, servir estáticos y persistir el ranking. Esa separación mantiene el backend simple y evita convertirlo en un motor gráfico innecesario.
+
+## Calidad y CI
+
+El repositorio incluye un workflow de GitHub Actions en `.github/workflows/quality.yml` que instala dependencias, ejecuta `python manage.py check`, valida migraciones, corre tests y prueba `collectstatic`.
+
+Herramientas recomendadas para crecer el pipeline:
+
+- `ruff` para lint y formato de Python.
+- `djlint` para templates Django.
+- `prettier` o `eslint` si se suma tooling Node para JavaScript/CSS.
+
+## Configuración rápida
+
+Copiá `.env.example` a `.env` y ajustá secretos, hosts permitidos, orígenes CSRF y `DATABASE_URL` según tu entorno.
+
+## Troubleshooting
+
+### `collectstatic` falla
+
+- Verificá que `STATIC_ROOT` apunte a un directorio escribible.
+- En Render, confirmá que el build command ejecute `python manage.py collectstatic --noinput` después de instalar dependencias.
+
+### Errores de PostgreSQL
+
+- Revisá que `DATABASE_URL` exista y use el formato esperado por `dj-database-url`.
+- Confirmá conectividad, usuario, contraseña y nombre de base.
+- Corré `python manage.py migrate` después de cambiar de base.
+
+### Problemas con `ALLOWED_HOSTS`
+
+- Agregá el dominio público de deploy a `DJANGO_ALLOWED_HOSTS`.
+- En local usá `127.0.0.1,localhost`.
+
+### Problemas con CSRF
+
+- Agregá el origen completo con esquema a `CSRF_TRUSTED_ORIGINS`, por ejemplo `https://tu-app.onrender.com`.
+- Si cambia el dominio de Render, actualizá esta variable.
+
+## Balanceo de juego
+
+- Torres: ajustá costo, daño, rango, cooldown y mejoras en `game/static/game/js/towers.js`.
+- Enemigos y oleadas: modificá vida, velocidad, recompensa, resistencias y plan de oleadas en `game/static/game/js/waves.js`.
+- Escenarios: editá rutas, nodos, paletas y modificadores en `game/static/game/js/scenarios.js` y `game/static/game/js/modes.js`.
+- Dificultades: balanceá HP inicial, créditos, multiplicadores de enemigos y score en `game/static/game/js/modes.js`.
+
+## Capturas o GIF
+
+Para documentar cambios visuales, agregá capturas o GIFs en `docs/` y enlazalos desde esta sección.
+
+## Contribuir
+
+1. Creá una rama desde `main`.
+2. Instalá dependencias con `pip install -r requirements.txt`.
+3. Corré `python manage.py check`, `python manage.py makemigrations --check --dry-run` y `python manage.py test`.
+4. Describí cambios de gameplay, accesibilidad y migraciones en el PR.

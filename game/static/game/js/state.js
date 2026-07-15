@@ -26,4 +26,10 @@ export const state = {
   scenarioIndex: 0,
   difficulty: 'normal',
   endlessMode: false,
+  startedAt: null,
+  towersBuilt: 0,
+  towersUpgraded: 0,
+  abilitiesUsed: 0,
+  gameSeed: '',
+  reducedMotion: localStorage.getItem('2042-reduced-motion') === 'true',
 };

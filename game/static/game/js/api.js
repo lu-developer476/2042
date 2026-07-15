@@ -11,6 +11,13 @@ export async function saveScore(state, refreshLeaderboardFn = refreshLeaderboard
         score: state.score,
         waves_cleared: Math.max(state.currentWaveIndex + (state.gameOver && state.hp > 0 ? 1 : 0), 0),
         enemies_destroyed: state.kills,
+        scenario: state.scenarioName,
+        duration_seconds: state.startedAt ? Math.round((Date.now() - state.startedAt) / 1000) : 0,
+        difficulty: state.difficulty,
+        towers_built: state.towersBuilt,
+        towers_upgraded: state.towersUpgraded,
+        abilities_used: state.abilitiesUsed,
+        game_seed: state.gameSeed,
       }),
     });
     await refreshLeaderboardFn();
@@ -28,7 +35,7 @@ export async function refreshLeaderboard() {
     data.results.slice(0, 10).forEach((entry, index) => {
       const row = document.createElement('div');
       row.className = 'leaderboard-row';
-      row.innerHTML = `<span>${index + 1}. ${entry.player_name}</span><strong>${entry.score}</strong>`;
+      row.innerHTML = `<span>${index + 1}. ${entry.player_name}<small>${entry.scenario || 'Escenario'} · ${entry.difficulty || 'normal'} · ${entry.duration_seconds || 0}s</small></span><strong>${entry.score}</strong>`;
       leaderboardList.appendChild(row);
     });
     if (!data.results.length) {
