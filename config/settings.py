@@ -4,8 +4,11 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-only-insecure-key-change-me')
+DEV_SECRET_KEY = 'dev-only-insecure-key-change-me'
+SECRET_KEY = os.environ.get('SECRET_KEY', DEV_SECRET_KEY)
 DEBUG = os.environ.get('DEBUG', 'true').lower() == 'true'
+if not DEBUG and SECRET_KEY == DEV_SECRET_KEY:
+    raise RuntimeError('SECRET_KEY must be configured with a production value when DEBUG is false.')
 
 allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '')
 ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(',') if host.strip()]
@@ -14,15 +17,13 @@ if DEBUG:
 render_hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if render_hostname:
     ALLOWED_HOSTS.append(render_hostname)
-if '.onrender.com' not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS.append('.onrender.com')
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://*.onrender.com',
-]
+CSRF_TRUSTED_ORIGINS = []
 csrf_extra = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
 if csrf_extra:
     CSRF_TRUSTED_ORIGINS.extend([origin.strip() for origin in csrf_extra.split(',') if origin.strip()])
+elif render_hostname:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{render_hostname}')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -43,6 +44,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'config.middleware.PermissionsPolicyMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -98,3 +100,13 @@ SECURE_SSL_REDIRECT = not DEBUG
 SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
+
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+X_FRAME_OPTIONS = 'DENY'
+PERMISSIONS_POLICY = {
+    'accelerometer': [],
+    'camera': [],
+    'geolocation': [],
+    'microphone': [],
+    'payment': [],
+}
