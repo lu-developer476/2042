@@ -1,3 +1,11 @@
+import { soundEngine } from './audio.js';
+import { scenarios } from './scenarios.js';
+import { towerTypes } from './towers.js';
+import { enemyTypes, wavePlan } from './waves.js';
+import { state } from './state.js';
+import { saveScore, refreshLeaderboard } from './api.js';
+import { difficulties, scenarioModifiers, createEndlessWave } from './modes.js';
+
 const canvas = document.getElementById('battlefield');
 const ctx = canvas.getContext('2d');
 const startButton = document.getElementById('start-game');
@@ -17,59 +25,11 @@ const comboValue = document.getElementById('combo-value');
 const speedValue = document.getElementById('speed-value');
 const scenarioValue = document.getElementById('scenario-value');
 const scenarioPicker = document.getElementById('scenario-picker');
+const difficultyPicker = document.getElementById('difficulty-picker');
+const endlessModeInput = document.getElementById('endless-mode');
 const playDialog = document.getElementById('play-dialog');
 const defenseStatusValue = document.getElementById('defense-status-value');
 const defenseStatusPanelValue = document.getElementById('defense-status-panel-value');
-
-const soundEngine = {
-  context: null,
-  enabled: true,
-  init() {
-    if (!this.enabled) return null;
-    if (!this.context) {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) {
-        this.enabled = false;
-        return null;
-      }
-      this.context = new AudioContext();
-    }
-    if (this.context.state === 'suspended') this.context.resume();
-    return this.context;
-  },
-  tone(frequency, duration = 0.08, type = 'sine', volume = 0.04, delay = 0) {
-    const audio = this.init();
-    if (!audio) return;
-    const start = audio.currentTime + delay;
-    const oscillator = audio.createOscillator();
-    const gain = audio.createGain();
-    oscillator.type = type;
-    oscillator.frequency.setValueAtTime(frequency, start);
-    gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-    oscillator.connect(gain);
-    gain.connect(audio.destination);
-    oscillator.start(start);
-    oscillator.stop(start + duration + 0.02);
-  },
-  play(name) {
-    const patterns = {
-      ui: [[520, 0.05, 'triangle', 0.025]],
-      start: [[320, 0.08, 'sawtooth', 0.035], [520, 0.1, 'triangle', 0.035, 0.06]],
-      wave: [[180, 0.08, 'sawtooth', 0.04], [260, 0.11, 'sawtooth', 0.035, 0.07]],
-      build: [[620, 0.06, 'square', 0.03], [840, 0.08, 'triangle', 0.025, 0.04]],
-      hit: [[140, 0.09, 'sawtooth', 0.035]],
-      kill: [[700, 0.05, 'triangle', 0.035], [960, 0.08, 'sine', 0.03, 0.04]],
-      ability: [[260, 0.08, 'square', 0.035], [520, 0.12, 'triangle', 0.032, 0.05]],
-      fail: [[120, 0.12, 'sawtooth', 0.035]],
-      end: [[180, 0.18, 'sawtooth', 0.035], [90, 0.24, 'sine', 0.03, 0.12]],
-    };
-    (patterns[name] || patterns.ui).forEach(([frequency, duration, type, volume, delay = 0]) => {
-      this.tone(frequency, duration, type, volume, delay);
-    });
-  },
-};
 
 const hud = {
   hp: document.getElementById('hp-value'),
@@ -130,204 +90,17 @@ function initInfoDialogs() {
 
 initInfoDialogs();
 
-const scenarios = [
-  {
-    key: 'neon-docks',
-    name: 'Muelles de Neón',
-    palette: { sky: '#08111f', ground: '#04070d', lane: 'rgba(117, 195, 255, 0.26)', accent: '#6df2ff', hazard: '#ff5e8e' },
-    routes: [
-      [
-        { x: 0, y: 90 }, { x: 190, y: 90 }, { x: 190, y: 190 }, { x: 460, y: 190 },
-        { x: 460, y: 340 }, { x: 780, y: 340 }, { x: 780, y: 470 }, { x: 960, y: 470 },
-      ],
-      [
-        { x: 0, y: 255 }, { x: 150, y: 255 }, { x: 150, y: 410 }, { x: 390, y: 410 },
-        { x: 390, y: 285 }, { x: 650, y: 285 }, { x: 650, y: 470 }, { x: 960, y: 470 },
-      ],
-    ],
-    nodes: [
-      { id: 1, x: 135, y: 205, occupied: null }, { id: 2, x: 290, y: 110, occupied: null },
-      { id: 3, x: 340, y: 295, occupied: null }, { id: 4, x: 520, y: 110, occupied: null },
-      { id: 5, x: 610, y: 260, occupied: null }, { id: 6, x: 710, y: 420, occupied: null },
-      { id: 7, x: 870, y: 300, occupied: null }, { id: 8, x: 265, y: 450, occupied: null },
-    ],
-    props: [
-      { type: 'dock', x: 40, y: 360, w: 110, h: 52 }, { type: 'antenna', x: 840, y: 105, h: 84 },
-      { type: 'reactor', x: 585, y: 455, r: 26 },
-    ],
-  },
-  {
-    key: 'ember-wastes',
-    name: 'Desierto Ígneo',
-    palette: { sky: '#21100a', ground: '#080504', lane: 'rgba(255, 191, 105, 0.28)', accent: '#ffc869', hazard: '#ff7a45' },
-    routes: [
-      [
-        { x: 0, y: 405 }, { x: 205, y: 405 }, { x: 205, y: 250 }, { x: 405, y: 250 },
-        { x: 405, y: 118 }, { x: 715, y: 118 }, { x: 715, y: 470 }, { x: 960, y: 470 },
-      ],
-      [
-        { x: 0, y: 145 }, { x: 245, y: 145 }, { x: 245, y: 335 }, { x: 540, y: 335 },
-        { x: 540, y: 215 }, { x: 820, y: 215 }, { x: 820, y: 470 }, { x: 960, y: 470 },
-      ],
-      [
-        { x: 0, y: 515 }, { x: 330, y: 515 }, { x: 330, y: 382 }, { x: 645, y: 382 },
-        { x: 645, y: 300 }, { x: 835, y: 300 }, { x: 835, y: 470 }, { x: 960, y: 470 },
-      ],
-    ],
-    nodes: [
-      { id: 1, x: 125, y: 320, occupied: null }, { id: 2, x: 300, y: 205, occupied: null },
-      { id: 3, x: 365, y: 455, occupied: null }, { id: 4, x: 520, y: 125, occupied: null },
-      { id: 5, x: 585, y: 430, occupied: null }, { id: 6, x: 760, y: 330, occupied: null },
-      { id: 7, x: 880, y: 155, occupied: null }, { id: 8, x: 665, y: 205, occupied: null },
-    ],
-    props: [
-      { type: 'crystal', x: 95, y: 95, r: 30 }, { type: 'crystal', x: 475, y: 475, r: 24 },
-      { type: 'antenna', x: 900, y: 360, h: 70 },
-    ],
-  },
-  {
-    key: 'aurora-ruins',
-    name: 'Ruinas Aurora',
-    palette: { sky: '#071626', ground: '#050812', lane: 'rgba(140, 120, 255, 0.3)', accent: '#a9fffb', hazard: '#8c78ff' },
-    routes: [
-      [
-        { x: 0, y: 275 }, { x: 155, y: 275 }, { x: 155, y: 115 }, { x: 410, y: 115 },
-        { x: 410, y: 275 }, { x: 690, y: 275 }, { x: 690, y: 470 }, { x: 960, y: 470 },
-      ],
-      [
-        { x: 0, y: 70 }, { x: 280, y: 70 }, { x: 280, y: 215 }, { x: 540, y: 215 },
-        { x: 540, y: 390 }, { x: 785, y: 390 }, { x: 785, y: 470 }, { x: 960, y: 470 },
-      ],
-    ],
-    nodes: [
-      { id: 1, x: 95, y: 170, occupied: null }, { id: 2, x: 265, y: 335, occupied: null },
-      { id: 3, x: 350, y: 160, occupied: null }, { id: 4, x: 500, y: 330, occupied: null },
-      { id: 5, x: 605, y: 125, occupied: null }, { id: 6, x: 725, y: 320, occupied: null },
-      { id: 7, x: 850, y: 410, occupied: null }, { id: 8, x: 805, y: 205, occupied: null },
-    ],
-    props: [
-      { type: 'reactor', x: 80, y: 455, r: 30 }, { type: 'dock', x: 430, y: 430, w: 135, h: 42 },
-      { type: 'crystal', x: 875, y: 95, r: 28 },
-    ],
-  },
-];
-
 function getActiveScenario() {
   return scenarios[state.scenarioIndex || 0];
 }
 
-const towerTypes = {
-  pulse: {
-    key: 'pulse',
-    name: 'Pulse Tower',
-    cost: 110,
-    color: '#6df2ff',
-    radius: 62,
-    description: 'Torre estable para cubrir cualquier sector sin volverse la prima donna del mapa.',
-    upgrades: [
-      { damage: 14, range: 150, cooldown: 0.85 },
-      { damage: 18, range: 160, cooldown: 0.82 },
-      { damage: 23, range: 168, cooldown: 0.75 },
-      { damage: 28, range: 176, cooldown: 0.7 },
-      { damage: 34, range: 185, cooldown: 0.64 },
-    ],
-    upgradeCosts: [150, 220, 320, 470],
-  },
-  sniper: {
-    key: 'sniper',
-    name: 'Sniper Tower',
-    cost: 160,
-    color: '#8c78ff',
-    radius: 62,
-    description: 'Daño alto y alcance criminal. Dispara lento, pero cuando pega, pega con odio.',
-    upgrades: [
-      { damage: 38, range: 250, cooldown: 1.5 },
-      { damage: 46, range: 270, cooldown: 1.42 },
-      { damage: 55, range: 290, cooldown: 1.34 },
-      { damage: 66, range: 305, cooldown: 1.26 },
-      { damage: 80, range: 320, cooldown: 1.18 },
-    ],
-    upgradeCosts: [220, 310, 430, 610],
-  },
-  shock: {
-    key: 'shock',
-    name: 'Shock Tower',
-    cost: 140,
-    color: '#ffd166',
-    radius: 62,
-    description: 'Control de masas. Daño decente y slow que arruina cualquier sprint enemigo.',
-    upgrades: [
-      { damage: 9, range: 145, cooldown: 0.95, slow: 0.2 },
-      { damage: 11, range: 155, cooldown: 0.9, slow: 0.25 },
-      { damage: 13, range: 165, cooldown: 0.85, slow: 0.3 },
-      { damage: 15, range: 175, cooldown: 0.8, slow: 0.34 },
-      { damage: 18, range: 185, cooldown: 0.75, slow: 0.38 },
-    ],
-    upgradeCosts: [180, 260, 360, 500],
-  },
-  burst: {
-    key: 'burst',
-    name: 'Burst Tower',
-    cost: 130,
-    color: '#ff5e8e',
-    radius: 62,
-    description: 'Cadencia corta y sucia. Cada ataque lanza una ráfaga de 5 disparos.',
-    upgrades: [
-      { damage: 4, range: 130, cooldown: 1.55, burstShots: 5, shotDelay: 0.08 },
-      { damage: 5, range: 138, cooldown: 1.45, burstShots: 5, shotDelay: 0.075 },
-      { damage: 6, range: 146, cooldown: 1.34, burstShots: 5, shotDelay: 0.07 },
-      { damage: 7, range: 154, cooldown: 1.24, burstShots: 5, shotDelay: 0.065 },
-      { damage: 8, range: 162, cooldown: 1.12, burstShots: 5, shotDelay: 0.06, critChance: 0.18 },
-    ],
-    upgradeCosts: [170, 240, 340, 490],
-  },
-};
+function getDifficulty() {
+  return difficulties[state.difficulty] || difficulties.normal;
+}
 
-const enemyTypes = {
-  scout: { name: 'Drone Scout', hp: 28, speed: 80, reward: 16, damage: 1, color: '#6df2ff', score: 18 },
-  crawler: { name: 'Crawler Unit', hp: 62, speed: 48, reward: 24, damage: 1, color: '#8cff7e', score: 28 },
-  tank: { name: 'Tank Mech', hp: 150, speed: 28, reward: 45, damage: 2, color: '#ffbf69', score: 65 },
-  ghost: { name: 'Ghost Signal', hp: 90, speed: 68, reward: 36, damage: 1, color: '#d8a7ff', score: 48, evadeChance: 0.18 },
-  boss: { name: 'Overseer', hp: 520, speed: 24, reward: 140, damage: 5, color: '#ff5e8e', score: 220 },
-};
-
-const wavePlan = [
-  ['scout', 'scout', 'scout', 'crawler'],
-  ['scout', 'scout', 'crawler', 'crawler', 'ghost'],
-  ['scout', 'ghost', 'crawler', 'crawler', 'tank'],
-  ['ghost', 'ghost', 'crawler', 'tank', 'tank'],
-  ['scout', 'scout', 'ghost', 'ghost', 'tank', 'tank'],
-  ['crawler', 'crawler', 'tank', 'ghost', 'tank', 'ghost'],
-  ['ghost', 'ghost', 'tank', 'tank', 'tank'],
-  ['boss', 'ghost', 'tank'],
-];
-
-const state = {
-  started: false,
-  paused: false,
-  gameOver: false,
-  hasSavedScore: false,
-  hp: 20,
-  credits: 300,
-  currentWaveIndex: -1,
-  totalWaves: wavePlan.length,
-  kills: 0,
-  score: 0,
-  selectedTowerType: null,
-  selectedTowerId: null,
-  towers: [],
-  enemies: [],
-  projectiles: [],
-  floatingTexts: [],
-  pendingSpawn: null,
-  waveInProgress: false,
-  playerName: 'Piloto Anónimo',
-  lastFrame: 0,
-  speedMultiplier: 1,
-  combo: 1,
-  comboTimer: 0,
-  scenarioIndex: 0,
-};
+function getScenarioModifier() {
+  return scenarioModifiers[getActiveScenario().key] || {};
+}
 
 function deepCloneNodes() {
   return getActiveScenario().nodes.map((node) => ({ ...node, occupied: null }));
@@ -340,15 +113,20 @@ class Enemy {
     const type = enemyTypes[typeKey];
     this.typeKey = typeKey;
     this.name = type.name;
-    this.maxHp = type.hp;
-    this.hp = type.hp;
-    this.baseSpeed = type.speed;
-    this.speed = type.speed;
-    this.reward = type.reward;
+    const difficulty = getDifficulty();
+    const modifier = getScenarioModifier();
+    const endlessScale = state.currentWaveIndex >= wavePlan.length ? 1 + ((state.currentWaveIndex - wavePlan.length + 1) * 0.12) : 1;
+    this.maxHp = Math.round(type.hp * difficulty.enemyHp * endlessScale);
+    this.hp = this.maxHp;
+    this.baseSpeed = type.speed * difficulty.enemySpeed * (modifier.enemySpeed || 1);
+    this.speed = this.baseSpeed;
+    this.reward = Math.round(type.reward * difficulty.reward);
     this.damage = type.damage;
     this.color = type.color;
     this.scoreValue = type.score;
     this.evadeChance = type.evadeChance || 0;
+    this.resistances = type.resistances || {};
+    this.vulnerabilities = type.vulnerabilities || {};
     this.radius = typeKey === 'boss' ? 20 : 12;
     this.routeIndex = routeIndex;
     this.path = getActiveScenario().routes[routeIndex];
@@ -418,6 +196,7 @@ class Tower {
   applyUpgradeStats() {
     const stats = this.type.upgrades[this.level - 1];
     Object.assign(this, stats);
+    this.range = Math.round(this.range * (getScenarioModifier().towerRange || 1));
   }
 
   get upgradeCost() {
@@ -595,6 +374,9 @@ class Projectile {
     const distance = Math.hypot(dx, dy);
     if (distance < this.target.radius + 2) {
       let appliedDamage = this.damage;
+      const attackType = this.isShock ? 'slow' : (this.critChance ? 'burst' : 'pulse');
+      appliedDamage *= this.target.vulnerabilities?.[attackType] || 1;
+      appliedDamage *= this.target.resistances?.[attackType] || 1;
       if (Math.random() < (this.target.evadeChance || 0)) {
         createFloatingText(this.target.x, this.target.y - 18, 'MISS', '#d8a7ff');
         return false;
@@ -606,8 +388,9 @@ class Projectile {
       this.target.hp -= appliedDamage;
       createFloatingText(this.target.x, this.target.y - 12, `-${appliedDamage}`, this.isShock ? '#ffd166' : '#ffffff');
       if (this.isShock) {
-        this.target.speed = this.target.baseSpeed * (1 - (this.slow || 0.2));
-        this.target.slowTimer = 0.7;
+        const slowResistance = this.target.resistances?.slow || 1;
+        this.target.speed = this.target.baseSpeed * (1 - ((this.slow || 0.2) * slowResistance));
+        this.target.slowTimer = 0.7 * slowResistance;
       }
       if (this.target.hp <= 0) {
         destroyEnemy(this.target);
@@ -655,7 +438,7 @@ function destroyEnemy(enemy) {
   state.kills += 1;
   state.combo = Math.min(state.combo + 0.08, 2.5);
   state.comboTimer = 4;
-  state.score += Math.round(enemy.scoreValue * state.combo);
+  state.score += Math.round(enemy.scoreValue * state.combo * getDifficulty().score);
   createFloatingText(enemy.x, enemy.y - 28, `+${enemy.reward}c`, '#6cff95');
   updateHud();
   updateAbilityButtons();
@@ -668,8 +451,10 @@ function resetState() {
   state.paused = false;
   state.gameOver = false;
   state.hasSavedScore = false;
-  state.hp = 20;
-  state.credits = 300;
+  const difficulty = getDifficulty();
+  state.hp = difficulty.hp;
+  state.maxHp = difficulty.hp;
+  state.credits = difficulty.credits;
   state.currentWaveIndex = -1;
   state.kills = 0;
   state.score = 0;
@@ -693,6 +478,7 @@ function resetState() {
   renderShop();
   renderSelectedTower();
   renderScenarioPicker();
+  renderDifficultyPicker();
   updateHud();
 }
 
@@ -706,6 +492,7 @@ function startGame() {
   startButton.disabled = true;
   if (playDialog?.open) playDialog.close();
   renderScenarioPicker();
+  renderDifficultyPicker();
   updateHud();
 }
 
@@ -723,7 +510,9 @@ function updateDefenseStatus() {
 function updateHud() {
   const hpText = Math.max(state.hp, 0);
   const creditsText = state.credits;
-  const waveText = `${Math.max(state.currentWaveIndex + (state.waveInProgress ? 1 : 0), 0)} / ${state.totalWaves}`;
+  const waveText = state.endlessMode && state.currentWaveIndex + 1 > state.totalWaves
+    ? `${Math.max(state.currentWaveIndex + (state.waveInProgress ? 1 : 0), 0)} / ∞`
+    : `${Math.max(state.currentWaveIndex + (state.waveInProgress ? 1 : 0), 0)} / ${state.totalWaves}`;
   hud.hp.textContent = hpText;
   hud.hpDetail.textContent = hpText;
   hud.credits.textContent = creditsText;
@@ -758,6 +547,24 @@ function renderScenarioPicker() {
     scenarioPicker.appendChild(button);
   });
 }
+function renderDifficultyPicker() {
+  if (!difficultyPicker) return;
+  difficultyPicker.innerHTML = '';
+  Object.values(difficulties).forEach((difficulty) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `scenario-chip ${state.difficulty === difficulty.key ? 'active' : ''}`;
+    button.textContent = difficulty.name;
+    button.disabled = state.started;
+    button.addEventListener('click', () => {
+      if (state.started) return;
+      state.difficulty = difficulty.key;
+      resetState();
+    });
+    difficultyPicker.appendChild(button);
+  });
+}
+
 function renderShop() {
   towerShop.innerHTML = '';
   Object.values(towerTypes).forEach((towerType) => {
@@ -817,21 +624,22 @@ function renderSelectedTower() {
 }
 
 function updateWavePreview() {
-  const next = wavePlan[state.currentWaveIndex + 1];
+  const nextWaveNumber = state.currentWaveIndex + 2;
+  const next = wavePlan[state.currentWaveIndex + 1] || (state.endlessMode ? createEndlessWave(nextWaveNumber) : null);
   wavePreview.textContent = next ? next.map((type) => enemyTypes[type].name).join(' · ') : 'FINAL';
 }
 
 function updateAbilityButtons() {
   empButton.disabled = !state.started || state.gameOver || state.credits < 160 || !state.enemies.length;
-  repairButton.disabled = !state.started || state.gameOver || state.credits < 120 || state.hp >= 20;
+  repairButton.disabled = !state.started || state.gameOver || state.credits < 120 || state.hp >= state.maxHp;
   overclockButton.disabled = !state.started || state.gameOver || state.credits < 90 || !state.selectedTowerId;
 }
 
 function spawnWave() {
-  if (!state.started || state.waveInProgress || state.currentWaveIndex + 1 >= wavePlan.length || state.gameOver) return;
+  if (!state.started || state.waveInProgress || (!state.endlessMode && state.currentWaveIndex + 1 >= wavePlan.length) || state.gameOver) return;
   soundEngine.play('wave');
   state.currentWaveIndex += 1;
-  const queue = [...wavePlan[state.currentWaveIndex]];
+  const queue = [...(wavePlan[state.currentWaveIndex] || createEndlessWave(state.currentWaveIndex + 1))];
   state.pendingSpawn = { queue, timer: 0.6, routeCursor: 0 };
   state.waveInProgress = true;
   nextWaveButton.disabled = true;
@@ -854,12 +662,13 @@ function updateSpawns(dt) {
   if (!state.pendingSpawn.queue.length && !state.enemies.length) {
     state.pendingSpawn = null;
     state.waveInProgress = false;
-    if (state.currentWaveIndex + 1 >= wavePlan.length) {
+    if (!state.endlessMode && state.currentWaveIndex + 1 >= wavePlan.length) {
       finishGame(true);
     } else {
-      state.credits += 80 + state.currentWaveIndex * 15;
+      const scenarioBonus = getScenarioModifier().creditsPerWave || 0;
+      state.credits += 80 + state.currentWaveIndex * 15 + scenarioBonus;
       state.score += 100;
-      createFloatingText(820, 60, `BONUS +${80 + state.currentWaveIndex * 15}c`, '#6df2ff');
+      createFloatingText(820, 60, `BONUS +${80 + state.currentWaveIndex * 15 + scenarioBonus}c`, '#6df2ff');
       nextWaveButton.disabled = false;
       updateHud();
       updateWavePreview();
@@ -886,49 +695,8 @@ function finishGame(victory) {
   overlayMessage.innerHTML = `${title}<br><small>${subtitle}<br>Score final: ${state.score}</small>`;
 
   if (!state.hasSavedScore) {
-    saveScore();
+    saveScore(state, refreshLeaderboard);
     state.hasSavedScore = true;
-  }
-}
-
-async function saveScore() {
-  try {
-    await fetch(window.GAME_CONFIG.saveScoreUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': window.GAME_CONFIG.csrfToken,
-      },
-      body: JSON.stringify({
-        player_name: state.playerName,
-        score: state.score,
-        waves_cleared: Math.max(state.currentWaveIndex + (state.gameOver && state.hp > 0 ? 1 : 0), 0),
-        enemies_destroyed: state.kills,
-      }),
-    });
-    await refreshLeaderboard();
-  } catch (error) {
-    console.error('No se pudo guardar el score', error);
-  }
-}
-
-async function refreshLeaderboard() {
-  const leaderboardList = document.getElementById('leaderboard-list');
-  try {
-    const response = await fetch(window.GAME_CONFIG.leaderboardApiUrl);
-    const data = await response.json();
-    leaderboardList.innerHTML = '';
-    data.results.slice(0, 10).forEach((entry, index) => {
-      const row = document.createElement('div');
-      row.className = 'leaderboard-row';
-      row.innerHTML = `<span>${index + 1}. ${entry.player_name}</span><strong>${entry.score}</strong>`;
-      leaderboardList.appendChild(row);
-    });
-    if (!data.results.length) {
-      leaderboardList.innerHTML = '<p class="microcopy">Todavía no hay registros.</p>';
-    }
-  } catch (error) {
-    console.error('No se pudo actualizar el ranking', error);
   }
 }
 
@@ -1194,7 +962,7 @@ repairButton.addEventListener('click', () => {
   if (repairButton.disabled) return;
   soundEngine.play('ability');
   state.credits -= 120;
-  state.hp = Math.min(20, state.hp + 5);
+  state.hp = Math.min(state.maxHp, state.hp + 5);
   createFloatingText(865, 420, '+5 CORE', '#6cff95');
   updateHud();
 });
@@ -1226,6 +994,12 @@ restartButton.addEventListener('click', () => {
   soundEngine.play('ui');
   startButton.disabled = false;
   resetState();
+});
+endlessModeInput?.addEventListener('change', () => {
+  if (state.started) return;
+  state.endlessMode = endlessModeInput.checked;
+  updateHud();
+  updateWavePreview();
 });
 canvas.addEventListener('click', handleCanvasClick);
 window.addEventListener('languagechange', () => { renderShop(); renderSelectedTower(); updateWavePreview(); });

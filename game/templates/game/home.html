@@ -24,6 +24,14 @@
               <label class="label">Escenario</label>
               <div id="scenario-picker" class="scenario-picker"></div>
             </div>
+            <div>
+              <label class="label">Dificultad</label>
+              <div id="difficulty-picker" class="scenario-picker"></div>
+            </div>
+            <label class="microcopy">
+              <input id="endless-mode" type="checkbox" />
+              Modo infinito después de la oleada 8
+            </label>
             <button id="start-game" class="button primary" data-i18n="startSimulation">Confirmar partida y jugar</button>
             <p class="microcopy" data-i18n="loginCopy">No requiere login. El ranking guarda nombre, score, oleadas y bajas.</p>
           </div>
@@ -88,5 +96,5 @@
     csrfToken: "{{ csrf_token }}"
   };
 </script>
-<script src="{% static 'game/js/game.js' %}"></script>
+<script type="module" src="{% static 'game/js/game.js' %}"></script>
 {% endblock %}
