@@ -171,6 +171,8 @@ class Enemy {
     const endlessScale = state.currentWaveIndex >= wavePlan.length ? 1 + ((state.currentWaveIndex - wavePlan.length + 1) * 0.12) : 1;
     this.maxHp = Math.round(type.hp * difficulty.enemyHp * endlessScale);
     this.hp = this.maxHp;
+    this.maxShield = Math.round((type.shield || 0) * difficulty.enemyHp * endlessScale);
+    this.shield = this.maxShield;
     this.baseSpeed = type.speed * difficulty.enemySpeed * (modifier.enemySpeed || 1);
     this.speed = this.baseSpeed;
     this.reward = Math.round(type.reward * difficulty.reward);
@@ -188,9 +190,14 @@ class Enemy {
     this.y = this.path[0].y;
     this.rotation = 0;
     this.slowTimer = 0;
+    this.towerAttackDamage = type.towerAttackDamage || 0;
+    this.towerAttackRange = type.towerAttackRange || 0;
+    this.towerAttackCooldown = type.towerAttackCooldown || 1;
+    this.towerAttackTimer = 0;
   }
 
   update(dt) {
+    if (this.updateTowerAttack(dt)) return true;
     if (this.slowTimer > 0) {
       this.slowTimer -= dt;
       if (this.slowTimer <= 0) this.speed = this.baseSpeed;
@@ -219,6 +226,31 @@ class Enemy {
     return true;
   }
 
+
+  updateTowerAttack(dt) {
+    if (!this.towerAttackDamage || !state.towers.length) return false;
+    if (this.towerAttackTimer > 0) this.towerAttackTimer -= dt;
+    let target = null;
+    let nearest = Infinity;
+    for (const tower of state.towers) {
+      const distance = Math.hypot(tower.x - this.x, tower.y - this.y);
+      if (distance <= this.towerAttackRange && distance < nearest) {
+        nearest = distance;
+        target = tower;
+      }
+    }
+    if (!target) return false;
+    this.rotation = Math.atan2(target.y - this.y, target.x - this.x);
+    if (this.towerAttackTimer <= 0) {
+      target.hp -= this.towerAttackDamage;
+      createFloatingText(target.x - 16, target.y - 34, `-${this.towerAttackDamage} TORRE`, '#ff7ca7');
+      soundEngine.play('hit');
+      if (target.hp <= 0) destroyTower(target, 'DESTRUIDA');
+      this.towerAttackTimer = this.towerAttackCooldown;
+    }
+    return true;
+  }
+
   draw() {
     drawEnemyShape(this);
 
@@ -227,6 +259,12 @@ class Enemy {
     ctx.fillRect(this.x - 18, this.y - 24, 36, 5);
     ctx.fillStyle = '#6cff95';
     ctx.fillRect(this.x - 18, this.y - 24, 36 * (this.hp / this.maxHp), 5);
+    if (this.maxShield > 0) {
+      ctx.fillStyle = 'rgba(126,247,200,0.22)';
+      ctx.fillRect(this.x - 18, this.y - 31, 36, 4);
+      ctx.fillStyle = '#7ef7c8';
+      ctx.fillRect(this.x - 18, this.y - 31, 36 * (this.shield / this.maxShield), 4);
+    }
     ctx.restore();
   }
 }
@@ -242,6 +280,8 @@ class Tower {
     this.level = 1;
     this.cooldownRemaining = 0;
     this.pendingShots = [];
+    this.maxHp = 90;
+    this.hp = this.maxHp;
     this.overclockTimer = 0;
     this.applyUpgradeStats();
   }
@@ -278,7 +318,7 @@ class Tower {
     const target = this.acquireTarget();
     if (!target) return;
 
-    if (this.typeKey === 'burst') {
+    if (this.burstShots) {
       for (let i = 0; i < this.burstShots; i += 1) {
         this.pendingShots.push({ enemy: target, timer: i * this.shotDelay });
       }
@@ -342,6 +382,12 @@ class Tower {
     ctx.font = '12px Orbitron';
     ctx.textAlign = 'center';
     ctx.fillText(`Lv.${this.level}`, this.x, this.y + 4);
+    if (this.hp < this.maxHp) {
+      ctx.fillStyle = 'rgba(255,255,255,0.16)';
+      ctx.fillRect(this.x - 20, this.y + 29, 40, 4);
+      ctx.fillStyle = '#6cff95';
+      ctx.fillRect(this.x - 20, this.y + 29, 40 * (this.hp / this.maxHp), 4);
+    }
     ctx.restore();
   }
 }
@@ -393,6 +439,25 @@ function drawEnemyShape(enemy) {
     ctx.arc(enemy.radius * 0.4, -3, 3, 0, Math.PI * 2);
     ctx.fillStyle = '#ffffff';
     ctx.fill();
+  } else if (enemy.typeKey === 'aegis') {
+    ctx.beginPath();
+    ctx.arc(0, 0, enemy.radius * 1.15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.strokeStyle = '#7ef7c8';
+    ctx.beginPath();
+    ctx.arc(0, 0, enemy.radius * 1.7, -0.75, 0.75);
+    ctx.stroke();
+  } else if (enemy.typeKey === 'saboteur') {
+    ctx.beginPath();
+    ctx.moveTo(enemy.radius + 4, 0);
+    ctx.lineTo(-enemy.radius * 0.8, -enemy.radius);
+    ctx.lineTo(-enemy.radius * 0.35, 0);
+    ctx.lineTo(-enemy.radius * 0.8, enemy.radius);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillRect(-enemy.radius * 0.2, -enemy.radius * 1.45, enemy.radius * 1.35, 4);
   } else if (enemy.typeKey === 'boss') {
     ctx.beginPath();
     for (let i = 0; i < 6; i += 1) {
@@ -412,7 +477,7 @@ function drawEnemyShape(enemy) {
 }
 
 class Projectile {
-  constructor(fromX, fromY, target, damage, isShock, critChance = 0) {
+  constructor(fromX, fromY, target, damage, isShock, critChance = 0, attackType = 'pulse', blastRadius = 0) {
     this.x = fromX;
     this.y = fromY;
     this.target = target;
@@ -422,6 +487,13 @@ class Projectile {
     this.color = isShock ? '#ffd166' : '#ffffff';
     this.isShock = isShock;
     this.critChance = critChance;
+    this.attackType = attackType;
+    this.blastRadius = blastRadius;
+    if (attackType === 'missile') {
+      this.speed = 340;
+      this.radius = 6;
+      this.color = '#ff8f3d';
+    }
   }
 
   update(dt) {
@@ -431,7 +503,7 @@ class Projectile {
     const distance = Math.hypot(dx, dy);
     if (distance < this.target.radius + 2) {
       let appliedDamage = this.damage;
-      const attackType = this.isShock ? 'slow' : (this.critChance ? 'burst' : 'pulse');
+      const attackType = this.isShock ? 'slow' : this.attackType;
       appliedDamage *= this.target.vulnerabilities?.[attackType] || 1;
       appliedDamage *= this.target.resistances?.[attackType] || 1;
       if (Math.random() < (this.target.evadeChance || 0)) {
@@ -443,6 +515,11 @@ class Projectile {
         createFloatingText(this.target.x, this.target.y - 24, 'CRIT', '#ffc869');
       }
       appliedDamage = Math.round(appliedDamage);
+      if (this.target.shield > 0) {
+        const shieldDamage = Math.min(this.target.shield, appliedDamage);
+        this.target.shield -= shieldDamage;
+        appliedDamage -= shieldDamage;
+      }
       this.target.hp -= appliedDamage;
       createFloatingText(this.target.x, this.target.y - 12, `-${appliedDamage}`, this.isShock ? '#ffd166' : '#ffffff');
       if (this.isShock) {
@@ -450,6 +527,7 @@ class Projectile {
         this.target.speed = this.target.baseSpeed * (1 - ((this.slow || 0.2) * slowResistance));
         this.target.slowTimer = 0.7 * slowResistance;
       }
+      if (this.blastRadius > 0) applyBlastDamage(this.target, this.damage * 0.45, this.blastRadius, attackType);
       if (this.target.hp <= 0) {
         destroyEnemy(this.target);
       }
@@ -475,10 +553,38 @@ class Projectile {
 
 function fireProjectile(tower, target, damage, isShock = false) {
   const critChance = tower.typeKey === 'burst' && tower.level === 5 ? tower.critChance || 0 : 0;
+  const attackType = tower.typeKey === 'missile' ? 'missile' : (tower.burstShots ? 'burst' : 'pulse');
   soundEngine.play(isShock ? 'zap' : 'shoot');
-  const projectile = new Projectile(tower.x, tower.y, target, damage, isShock, critChance);
+  const projectile = new Projectile(tower.x, tower.y, target, damage, isShock, critChance, attackType, tower.blastRadius || 0);
   projectile.slow = tower.slow || 0;
   state.projectiles.push(projectile);
+}
+
+
+function applyBlastDamage(primaryTarget, damage, radius, attackType) {
+  for (const enemy of [...state.enemies]) {
+    if (enemy === primaryTarget) continue;
+    if (Math.hypot(enemy.x - primaryTarget.x, enemy.y - primaryTarget.y) > radius) continue;
+    let appliedDamage = Math.round(damage * (enemy.vulnerabilities?.[attackType] || 1) * (enemy.resistances?.[attackType] || 1));
+    if (enemy.shield > 0) {
+      const shieldDamage = Math.min(enemy.shield, appliedDamage);
+      enemy.shield -= shieldDamage;
+      appliedDamage -= shieldDamage;
+    }
+    enemy.hp -= appliedDamage;
+    createFloatingText(enemy.x, enemy.y - 14, `-${appliedDamage}`, '#ff8f3d');
+    if (enemy.hp <= 0) destroyEnemy(enemy);
+  }
+}
+
+function destroyTower(tower, label = 'TORRE CAÍDA') {
+  state.towers = state.towers.filter((entry) => entry.id !== tower.id);
+  const node = nodes.find((entry) => entry.occupied === tower.id);
+  if (node) node.occupied = null;
+  if (state.selectedTowerId === tower.id) state.selectedTowerId = null;
+  createFloatingText(tower.x - 28, tower.y - 48, label, '#ff7ca7');
+  renderSelectedTower();
+  renderShop();
 }
 
 function getUniqueId() {
@@ -718,7 +824,8 @@ function renderSelectedTower() {
       <div>Daño: <strong>${tower.damage}</strong></div>
       <div>Rango: <strong>${tower.range}</strong></div>
       <div>Cooldown: <strong>${tower.cooldown.toFixed(2)}s</strong></div>
-      ${tower.typeKey === 'burst' ? `<div>Ráfaga: <strong>${tower.burstShots} tiros</strong></div>` : ''}
+      ${tower.burstShots ? `<div>Ráfaga: <strong>${tower.burstShots} tiros</strong></div>` : ''}
+      ${tower.blastRadius ? `<div>Explosión: <strong>${tower.blastRadius}px</strong></div>` : ''}
       ${tower.typeKey === 'shock' ? `<div>Slow: <strong>${Math.round((tower.slow || 0) * 100)}%</strong></div>` : ''}
       <div>
         Próxima mejora:
