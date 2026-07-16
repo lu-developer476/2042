@@ -138,9 +138,11 @@ export const scenarios = [
 export const STAGE_SIZE = 5;
 export const TOTAL_STAGES = 5;
 
-const STAGE_ROUTE_GROWTH = 104;
-const DETOUR_WIDTH_GROWTH = 82;
+const STAGE_ROUTE_GROWTH = 126;
+const DETOUR_WIDTH_GROWTH = 118;
 const BASE_ROUTE_EXTENSION_STEPS = 1;
+const STAGE_WORLD_WIDTH_GROWTH = 220;
+const BASE_WORLD_WIDTH = 960;
 
 function clonePoint(point) {
   return { ...point };
@@ -150,29 +152,32 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
-function insertStageDetour(route, stageStep) {
+function insertStageDetour(route, stageStep, routeIndex = 0) {
   const extended = route.map(clonePoint);
-  const insertionIndex = clamp(extended.length - 2 - (stageStep % 2), 1, extended.length - 2);
+  const insertionIndex = clamp(extended.length - 2 - ((stageStep + routeIndex) % 3), 1, extended.length - 2);
   const anchor = extended[insertionIndex];
   const previous = extended[insertionIndex - 1];
   const next = extended[insertionIndex + 1] || anchor;
   const verticalDirection = anchor.y >= previous.y ? 1 : -1;
-  const alternateDirection = stageStep % 2 === 0 ? verticalDirection : -verticalDirection;
-  const detourDepth = Math.min(78 + STAGE_ROUTE_GROWTH * stageStep, 238);
-  const detourWidth = 88 + DETOUR_WIDTH_GROWTH * stageStep;
-  const y = clamp(anchor.y + alternateDirection * detourDepth, 55, 525);
-  const x = clamp(Math.max(anchor.x, next.x) + detourWidth, 120, 890);
+  const alternateDirection = (stageStep + routeIndex) % 2 === 0 ? verticalDirection : -verticalDirection;
+  const detourDepth = Math.min(92 + STAGE_ROUTE_GROWTH * stageStep + routeIndex * 24, 292);
+  const detourWidth = 126 + DETOUR_WIDTH_GROWTH * stageStep + routeIndex * 42;
+  const worldWidth = BASE_WORLD_WIDTH + STAGE_WORLD_WIDTH_GROWTH * stageStep;
+  const y = clamp(anchor.y + alternateDirection * detourDepth, 45, 535);
+  const x = clamp(Math.max(anchor.x, next.x) + detourWidth, 120, worldWidth - 48);
 
   extended.splice(insertionIndex + 1, 0, { x: anchor.x, y }, { x, y }, { x, y: next.y });
   return extended;
 }
 
-function extendRoute(route, stageIndex) {
+function extendRoute(route, stageIndex, routeIndex = 0) {
   let extended = route.map(clonePoint);
   for (let stageStep = 1; stageStep <= stageIndex; stageStep += 1) {
-    extended = insertStageDetour(extended, stageStep);
+    extended = insertStageDetour(extended, stageStep, routeIndex);
   }
-  return extended;
+  const coreX = BASE_WORLD_WIDTH + STAGE_WORLD_WIDTH_GROWTH * Math.max(stageIndex - BASE_ROUTE_EXTENSION_STEPS, 0);
+  const lastPoint = extended[extended.length - 1];
+  return [...extended.slice(0, -1), { ...lastPoint, x: coreX }];
 }
 
 function createStageRoute(route, stageIndex, routeIndex) {
@@ -184,12 +189,12 @@ function createStageRoute(route, stageIndex, routeIndex) {
     return clonePoint(point);
   });
 
-  return extendRoute(shifted, stageIndex + routeIndex + 1);
+  return extendRoute(shifted, stageIndex + routeIndex + 1, routeIndex + 1);
 }
 
 function stageRoutes(routes, stageIndex) {
   const extensionSteps = stageIndex + BASE_ROUTE_EXTENSION_STEPS;
-  const extendedRoutes = routes.map((route) => extendRoute(route, extensionSteps));
+  const extendedRoutes = routes.map((route, routeIndex) => extendRoute(route, extensionSteps, routeIndex));
   if (stageIndex <= 0) return extendedRoutes;
 
   const extraRouteCount = Math.min(stageIndex, routes.length + 1);
@@ -242,9 +247,13 @@ export function getStageForWave(waveIndex) {
 
 export function getScenarioLayout(scenario, waveIndex = 0, difficultyKey = 'normal') {
   const stageIndex = getStageForWave(waveIndex) - 1;
+  const routes = stageRoutes(scenario.routes, stageIndex);
+  const furthestPoint = Math.max(...routes.flat().map((point) => point.x));
   return {
     ...scenario,
-    routes: stageRoutes(scenario.routes, stageIndex),
+    stageIndex,
+    worldWidth: Math.max(BASE_WORLD_WIDTH + STAGE_WORLD_WIDTH_GROWTH * stageIndex, furthestPoint + 40),
+    routes,
     nodes: stageNodes(scenario.nodes, stageIndex),
   };
 }

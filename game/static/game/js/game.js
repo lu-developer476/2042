@@ -51,6 +51,33 @@ const PATH_CENTER_WIDTH = 3;
 const TOWER_NODE_RADIUS = 22;
 const CORE_OUTER_RADIUS = 36;
 const CORE_INNER_RADIUS = 23;
+const WORLD_HEIGHT = 540;
+
+
+function getViewport(scenario = getActiveScenario()) {
+  const scale = Math.min(canvas.width / (scenario.worldWidth || canvas.width), canvas.height / WORLD_HEIGHT);
+  return {
+    scale,
+    x: (canvas.width - (scenario.worldWidth || canvas.width) * scale) / 2,
+    y: (canvas.height - WORLD_HEIGHT * scale) / 2,
+  };
+}
+
+function withWorldViewport(scenario, draw) {
+  const viewport = getViewport(scenario);
+  ctx.save();
+  ctx.translate(viewport.x, viewport.y);
+  ctx.scale(viewport.scale, viewport.scale);
+  draw();
+  ctx.restore();
+}
+
+function getCorePosition(scenario = getActiveScenario()) {
+  const routeEnds = scenario.routes.map((route) => route[route.length - 1]);
+  const x = Math.max(...routeEnds.map((point) => point.x)) - 60;
+  const y = routeEnds.reduce((sum, point) => sum + point.y, 0) / routeEnds.length;
+  return { x, y };
+}
 
 const hud = {
   hp: document.getElementById('hp-value'),
@@ -933,33 +960,35 @@ function drawBattlefield() {
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  drawScenarioProps(scenario);
-  drawGrid(scenario);
-  drawPaths(scenario);
-  drawNodes();
-  drawCore();
+  withWorldViewport(scenario, () => {
+    drawScenarioProps(scenario);
+    drawGrid(scenario);
+    drawPaths(scenario);
+    drawNodes();
+    drawCore(scenario);
 
-  state.towers.forEach((tower) => tower.draw());
-  state.projectiles.forEach((projectile) => projectile.draw());
-  state.enemies.forEach((enemy) => enemy.draw());
-  drawFloatingTexts();
+    state.towers.forEach((tower) => tower.draw());
+    state.projectiles.forEach((projectile) => projectile.draw());
+    state.enemies.forEach((enemy) => enemy.draw());
+    drawFloatingTexts();
+  });
 }
 
 function drawGrid(scenario) {
   ctx.save();
   ctx.strokeStyle = `${scenario.palette.accent}14`;
   ctx.lineWidth = 1;
-  for (let x = 0; x <= canvas.width; x += 48) {
+  const worldWidth = scenario.worldWidth || canvas.width;
+  for (let x = 0; x <= worldWidth; x += 48) {
     ctx.beginPath();
     ctx.moveTo(x, 0);
-    ctx.lineTo(x, canvas.height);
+    ctx.lineTo(x, WORLD_HEIGHT);
     ctx.stroke();
   }
-  for (let y = 0; y <= canvas.height; y += 48) {
+  for (let y = 0; y <= WORLD_HEIGHT; y += 48) {
     ctx.beginPath();
     ctx.moveTo(0, y);
-    ctx.lineTo(canvas.width, y);
-    ctx.lineTo(canvas.width, y);
+    ctx.lineTo(worldWidth, y);
     ctx.stroke();
   }
   ctx.restore();
@@ -1051,9 +1080,10 @@ function drawNodes() {
   });
 }
 
-function drawCore() {
+function drawCore(scenario) {
+  const core = getCorePosition(scenario);
   ctx.save();
-  ctx.translate(900, 470);
+  ctx.translate(core.x, core.y);
   ctx.beginPath();
   ctx.fillStyle = 'rgba(255, 94, 142, 0.18)';
   ctx.arc(0, 0, CORE_OUTER_RADIUS, 0, Math.PI * 2);
@@ -1124,9 +1154,12 @@ function animate(timestamp) {
 
 function getCanvasCoordinates(event) {
   const rect = canvas.getBoundingClientRect();
+  const viewport = getViewport();
+  const canvasX = ((event.clientX - rect.left) / rect.width) * canvas.width;
+  const canvasY = ((event.clientY - rect.top) / rect.height) * canvas.height;
   return {
-    x: ((event.clientX - rect.left) / rect.width) * canvas.width,
-    y: ((event.clientY - rect.top) / rect.height) * canvas.height,
+    x: (canvasX - viewport.x) / viewport.scale,
+    y: (canvasY - viewport.y) / viewport.scale,
   };
 }
 
