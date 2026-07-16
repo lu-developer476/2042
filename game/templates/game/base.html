@@ -24,6 +24,7 @@
       </a>
       <div class="navbar-links">
         {% block nav_play %}<a href="{% url 'home' %}" data-i18n="navPlay">Partida</a>{% endblock %}
+        <button class="navbar-dialog-trigger" type="button" data-dialog-target="guide-dialog" aria-haspopup="dialog">Guía</button>
         <a href="{% url 'leaderboard' %}" data-i18n="navLeaderboard">Ranking</a>
         <a href="/admin/" data-i18n="navAdmin">Admin</a>
       </div>
@@ -51,6 +52,21 @@
         <button id="theme-toggle" class="button ghost utility-button" type="button" data-i18n="themeToggle" aria-label="Cambiar tema">🌙/☀️</button>
       </div>
     </nav>
+
+    <dialog id="guide-dialog" class="info-dialog">
+      <section class="card dialog-card guide-dialog-card" aria-label="Guía de ítems">
+        <button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
+        <h2>Guía de campo</h2>
+        <p class="microcopy">Hacé clic en los ítems que aparezcan en el tablero antes de que un enemigo los alcance. Ambos bandos pueden aprovecharlos.</p>
+        <div class="guide-items">
+          <article><strong>¢ Cápsula de créditos</strong><p>Jugador: +65c. Enemigo: recibe +25c al ser destruido.</p></article>
+          <article><strong>+ Nano-reparador</strong><p>Jugador: repara 3 HP del Core. Enemigo: recupera 35 HP.</p></article>
+          <article><strong>⚡ Celda de sobrecarga</strong><p>Jugador: acelera todas las torres 7 s. Enemigo: gana velocidad 5 s.</p></article>
+          <article><strong>◈ Escudo prismático</strong><p>Jugador: añade 4 HP temporales al Core. Enemigo: obtiene 40 de escudo.</p></article>
+        </div>
+        <p class="microcopy"><strong>Consejo:</strong> los ítems aparecen entre oleadas y durante los combates; tomalos con un clic.</p>
+      </section>
+    </dialog>
 
     <main class="page-shell">
       {% block content %}{% endblock %}

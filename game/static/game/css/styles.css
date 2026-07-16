@@ -1513,3 +1513,8 @@ summary,
     text-align: center;
   }
 }
+.guide-dialog-card { max-width: 680px; }
+.guide-items { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+.guide-items article { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(109,242,255,.05); }
+.guide-items p { color: var(--muted); margin: 7px 0 0; line-height: 1.45; font-size: .9rem; }
+@media (max-width: 560px) { .guide-items { grid-template-columns: 1fr; } }
