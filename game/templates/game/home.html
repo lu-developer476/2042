@@ -85,8 +85,10 @@
             <button id="end-run" class="button danger" disabled>Finalizar partida</button>
             <button id="restart-game" class="button danger" data-i18n="restart">Reiniciar</button>
             <button id="speed-toggle" class="button ghost" data-i18n="speedToggle">Velocidad x2</button>
-            <button id="mute-audio" class="button ghost" type="button">Silenciar audio</button>
-            <label class="volume-control">Volumen <input id="volume-control" type="range" min="0" max="100" step="5" value="70" /></label>
+            <div class="audio-tool" aria-label="Control de audio">
+              <button id="mute-audio" class="button ghost" type="button">Silenciar audio</button>
+              <label class="volume-control">Volumen <input id="volume-control" type="range" min="0" max="100" step="5" value="70" /></label>
+            </div>
             <label class="microcopy"><input id="reduced-motion" type="checkbox" /> Reducir movimiento</label>
           </div>
 

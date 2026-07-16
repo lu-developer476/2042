@@ -1283,13 +1283,22 @@ td { color: var(--muted); }
 }
 
 .board-command-section .volume-control,
-.board-command-section .microcopy {
+.board-command-section .microcopy,
+.board-command-section .audio-tool {
   min-width: 0;
+}
+
+.board-command-section .audio-tool {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(140px, max-content) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
 }
 
 .board-command-section .volume-control {
   display: grid;
-  grid-column: 1 / -1;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 8px;
@@ -1387,7 +1396,9 @@ td { color: var(--muted); }
 
 .ability-help div {
   display: grid;
-  gap: 8px;
+  grid-template-columns: minmax(128px, 0.9fr) minmax(0, 1.1fr);
+  gap: 10px;
+  align-items: center;
   align-content: start;
   padding: 8px 10px;
   border: 1px solid var(--line);
@@ -1404,6 +1415,7 @@ td { color: var(--muted); }
 .ability-help dd {
   margin: 0;
   line-height: 1.45;
+  text-align: right;
 }
 
 .ability-help dd strong {
@@ -1478,4 +1490,19 @@ summary,
 
 .board-command-section .volume-control {
   grid-template-columns: minmax(0, 1fr);
+}
+
+.board-command-section .ability-row {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 460px) {
+  .board-command-section .audio-tool,
+  .ability-help div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ability-help dd {
+    text-align: center;
+  }
 }
