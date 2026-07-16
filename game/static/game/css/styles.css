@@ -659,6 +659,11 @@ td { color: var(--muted); }
   background: rgba(255, 255, 255, 0.04);
 }
 
+.play-setup-panel {
+  padding: 12px;
+  background: rgba(5, 10, 20, 0.72);
+}
+
 .play-popover {
   min-height: 70px;
   padding: 0;

@@ -12,44 +12,41 @@
         <button class="dialog-close" type="button" data-dialog-close aria-label="Cerrar">×</button>
         <h2>Nueva partida</h2>
 
-        <div class="play-dialog-grid play-dialog-grid-single" aria-label="Accesos rápidos de juego">
-          <details class="play-dialog-section play-popover" aria-label="Configuración de partida">
-            <summary class="play-popover-trigger"><span>Configurar</span><strong>Nueva partida</strong><em>Escenario, dificultad y piloto</em></summary>
-            <div class="play-popover-panel">
-              <h3>Configurar partida</h3>
-              <p class="microcopy" data-i18n="loginCopy">Elegí escenario, dificultad e iniciá una nueva partida. Las torres, controles y acciones quedan disponibles desde el tablero durante toda la partida.</p>
-              <div class="setup-fields launch-setup-fields">
-                <label class="label" for="player-name" data-i18n="pilotName">Nombre del piloto</label>
-                <input id="player-name" class="input" type="text" maxlength="30" placeholder="Ej: Lu" data-i18n-placeholder="pilotPlaceholder" />
-                <div>
-                  <label class="label" for="scenario-select">Escenario</label>
-                  <select id="scenario-select" class="input setup-select" aria-label="Elegir escenario">
-                    <option value="0">Muelles de Neón</option>
-                    <option value="1">Desierto Ígneo</option>
-                    <option value="2">Ruinas Aurora</option>
-                    <option value="3">Bastión Orbital</option>
-                    <option value="4">Dosel Bioforja</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="label" for="difficulty-select">Dificultad</label>
-                  <select id="difficulty-select" class="input setup-select" aria-label="Elegir dificultad">
-                    <option value="easy">Fácil</option>
-                    <option value="normal" selected>Normal</option>
-                    <option value="hard">Difícil</option>
-                    <option value="nightmare">Pesadilla</option>
-                  </select>
-                </div>
-                <label class="microcopy endless-toggle">
-                  <input id="endless-mode" type="checkbox" />
-                  Modo infinito después de la oleada 25
-                </label>
-                <button id="start-game" class="button primary" data-i18n="startSimulation">Confirmar partida y jugar</button>
-                <button id="resume-progress" class="button ghost" type="button" disabled>Retomar progreso guardado</button>
+        <div class="play-dialog-grid play-dialog-grid-single" aria-label="Configuración de partida">
+          <section class="play-dialog-section play-setup-panel" aria-label="Configuración de partida">
+            <h3>Configurar partida</h3>
+            <p class="microcopy" data-i18n="loginCopy">Elegí escenario, dificultad e iniciá una nueva partida. Las torres, controles y acciones quedan disponibles desde el tablero durante toda la partida.</p>
+            <div class="setup-fields launch-setup-fields">
+              <label class="label" for="player-name" data-i18n="pilotName">Nombre del piloto</label>
+              <input id="player-name" class="input" type="text" maxlength="30" placeholder="Ej: Lu" data-i18n-placeholder="pilotPlaceholder" />
+              <div>
+                <label class="label" for="scenario-select">Escenario</label>
+                <select id="scenario-select" class="input setup-select" aria-label="Elegir escenario">
+                  <option value="0">Muelles de Neón</option>
+                  <option value="1">Desierto Ígneo</option>
+                  <option value="2">Ruinas Aurora</option>
+                  <option value="3">Bastión Orbital</option>
+                  <option value="4">Dosel Bioforja</option>
+                </select>
               </div>
-              <p class="microcopy"><strong>Atajos:</strong> Espacio pausa/reanuda · N inicia oleada · 1/2/3 selecciona torres · M silencia audio · R reinicia.</p>
+              <div>
+                <label class="label" for="difficulty-select">Dificultad</label>
+                <select id="difficulty-select" class="input setup-select" aria-label="Elegir dificultad">
+                  <option value="easy">Fácil</option>
+                  <option value="normal" selected>Normal</option>
+                  <option value="hard">Difícil</option>
+                  <option value="nightmare">Pesadilla</option>
+                </select>
+              </div>
+              <label class="microcopy endless-toggle">
+                <input id="endless-mode" type="checkbox" />
+                Modo infinito después de la oleada 25
+              </label>
+              <button id="start-game" class="button primary" data-i18n="startSimulation">Confirmar partida y jugar</button>
+              <button id="resume-progress" class="button ghost" type="button" disabled>Retomar progreso guardado</button>
             </div>
-          </details>
+            <p class="microcopy"><strong>Atajos:</strong> Espacio pausa/reanuda · N inicia oleada · 1/2/3 selecciona torres · M silencia audio · R reinicia.</p>
+          </section>
         </div>
       </section>
     </dialog>
