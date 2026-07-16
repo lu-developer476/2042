@@ -1515,13 +1515,18 @@ summary,
 }
 .guide-dialog {
   margin: 0;
+  width: min(96vw, 680px);
+  max-height: none;
+  overflow: hidden;
 }
 
 .guide-dialog-card {
   display: grid;
   justify-items: center;
+  max-height: none;
   max-width: 680px;
   margin: 0 auto;
+  overflow: hidden;
   text-align: center;
 }
 
@@ -1532,4 +1537,43 @@ summary,
 .guide-items article { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(109,242,255,.05); }
 .guide-items p { color: var(--muted); margin: 7px 0 0; line-height: 1.45; font-size: .9rem; }
 .guide-items p span { display: block; }
-@media (max-width: 560px) { .guide-items { grid-template-columns: 1fr; } }
+
+@media (max-width: 560px) {
+  .guide-dialog-card {
+    padding: 10px;
+  }
+
+  .guide-dialog-card h2 {
+    margin-bottom: 8px;
+    font-size: 1rem;
+  }
+
+  .guide-dialog-card > .microcopy {
+    font-size: 0.75rem;
+    line-height: 1.3;
+  }
+
+  .guide-items {
+    gap: 8px;
+    margin: 10px 0;
+  }
+
+  .guide-items article {
+    min-width: 0;
+    padding: 9px 6px;
+  }
+
+  .guide-items strong {
+    display: block;
+    overflow-wrap: anywhere;
+    font-size: 0.78rem;
+    line-height: 1.2;
+  }
+
+  .guide-items p {
+    margin-top: 4px;
+    overflow-wrap: anywhere;
+    font-size: 0.7rem;
+    line-height: 1.25;
+  }
+}
