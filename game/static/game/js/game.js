@@ -45,6 +45,12 @@ const muteAudioButton = document.getElementById('mute-audio');
 const volumeControl = document.getElementById('volume-control');
 const reducedMotionInput = document.getElementById('reduced-motion');
 const PROGRESS_STORAGE_KEY = '2042-stage-progress';
+const PATH_BODY_WIDTH = 24;
+const ALT_PATH_BODY_WIDTH = 20;
+const PATH_CENTER_WIDTH = 3;
+const TOWER_NODE_RADIUS = 22;
+const CORE_OUTER_RADIUS = 36;
+const CORE_INNER_RADIUS = 23;
 
 const hud = {
   hp: document.getElementById('hp-value'),
@@ -963,7 +969,7 @@ function drawPaths(scenario) {
   scenario.routes.forEach((route, index) => {
     ctx.save();
     ctx.strokeStyle = index === 0 ? scenario.palette.lane : `${scenario.palette.hazard}33`;
-    ctx.lineWidth = index === 0 ? 34 : 28;
+    ctx.lineWidth = index === 0 ? PATH_BODY_WIDTH : ALT_PATH_BODY_WIDTH;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     ctx.beginPath();
@@ -974,7 +980,7 @@ function drawPaths(scenario) {
     ctx.setLineDash([16, 16]);
     ctx.lineDashOffset = state.reducedMotion ? 0 : -performance.now() / (80 + index * 18);
     ctx.strokeStyle = index === 0 ? scenario.palette.accent : scenario.palette.hazard;
-    ctx.lineWidth = 4;
+    ctx.lineWidth = PATH_CENTER_WIDTH;
     ctx.beginPath();
     ctx.moveTo(route[0].x, route[0].y);
     for (const point of route.slice(1)) ctx.lineTo(point.x, point.y);
@@ -1038,7 +1044,7 @@ function drawNodes() {
     ctx.fillStyle = node.occupied ? 'rgba(109, 242, 255, 0.14)' : 'rgba(255,255,255,0.04)';
     ctx.strokeStyle = node.occupied ? 'rgba(109, 242, 255, 0.45)' : 'rgba(255,255,255,0.18)';
     ctx.lineWidth = 2;
-    ctx.arc(node.x, node.y, 28, 0, Math.PI * 2);
+    ctx.arc(node.x, node.y, TOWER_NODE_RADIUS, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     ctx.restore();
@@ -1050,12 +1056,12 @@ function drawCore() {
   ctx.translate(900, 470);
   ctx.beginPath();
   ctx.fillStyle = 'rgba(255, 94, 142, 0.18)';
-  ctx.arc(0, 0, 44, 0, Math.PI * 2);
+  ctx.arc(0, 0, CORE_OUTER_RADIUS, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
   ctx.strokeStyle = '#ff5e8e';
   ctx.lineWidth = 4;
-  ctx.arc(0, 0, 28, 0, Math.PI * 2);
+  ctx.arc(0, 0, CORE_INNER_RADIUS, 0, Math.PI * 2);
   ctx.stroke();
   ctx.fillStyle = '#edf5ff';
   ctx.font = '12px Orbitron';

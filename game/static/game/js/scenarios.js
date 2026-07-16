@@ -138,8 +138,9 @@ export const scenarios = [
 export const STAGE_SIZE = 5;
 export const TOTAL_STAGES = 5;
 
-const STAGE_ROUTE_GROWTH = 92;
-const DETOUR_WIDTH_GROWTH = 68;
+const STAGE_ROUTE_GROWTH = 104;
+const DETOUR_WIDTH_GROWTH = 82;
+const BASE_ROUTE_EXTENSION_STEPS = 1;
 
 function clonePoint(point) {
   return { ...point };
@@ -157,8 +158,8 @@ function insertStageDetour(route, stageStep) {
   const next = extended[insertionIndex + 1] || anchor;
   const verticalDirection = anchor.y >= previous.y ? 1 : -1;
   const alternateDirection = stageStep % 2 === 0 ? verticalDirection : -verticalDirection;
-  const detourDepth = Math.min(70 + STAGE_ROUTE_GROWTH * stageStep, 230);
-  const detourWidth = 72 + DETOUR_WIDTH_GROWTH * stageStep;
+  const detourDepth = Math.min(78 + STAGE_ROUTE_GROWTH * stageStep, 238);
+  const detourWidth = 88 + DETOUR_WIDTH_GROWTH * stageStep;
   const y = clamp(anchor.y + alternateDirection * detourDepth, 55, 525);
   const x = clamp(Math.max(anchor.x, next.x) + detourWidth, 120, 890);
 
@@ -187,13 +188,14 @@ function createStageRoute(route, stageIndex, routeIndex) {
 }
 
 function stageRoutes(routes, stageIndex) {
-  const extendedRoutes = routes.map((route) => extendRoute(route, stageIndex));
+  const extensionSteps = stageIndex + BASE_ROUTE_EXTENSION_STEPS;
+  const extendedRoutes = routes.map((route) => extendRoute(route, extensionSteps));
   if (stageIndex <= 0) return extendedRoutes;
 
   const extraRouteCount = Math.min(stageIndex, routes.length + 1);
   for (let index = 0; index < extraRouteCount; index += 1) {
     const baseRoute = routes[index % routes.length];
-    extendedRoutes.push(createStageRoute(baseRoute, stageIndex, index));
+    extendedRoutes.push(createStageRoute(baseRoute, extensionSteps, index));
   }
 
   return extendedRoutes;
@@ -201,16 +203,16 @@ function stageRoutes(routes, stageIndex) {
 
 const stageNodeBlueprints = [
   [
-    { x: 455, y: 455 }, { x: 605, y: 390 },
+    { x: 455, y: 455 }, { x: 605, y: 390 }, { x: 835, y: 120 },
   ],
   [
-    { x: 840, y: 126 }, { x: 735, y: 245 },
+    { x: 840, y: 126 }, { x: 735, y: 245 }, { x: 205, y: 470 },
   ],
   [
-    { x: 285, y: 290 }, { x: 500, y: 75 },
+    { x: 285, y: 290 }, { x: 500, y: 75 }, { x: 900, y: 360 },
   ],
   [
-    { x: 700, y: 205 }, { x: 150, y: 430 },
+    { x: 700, y: 205 }, { x: 150, y: 430 }, { x: 420, y: 500 },
   ],
 ];
 
@@ -218,7 +220,7 @@ function stageNodes(nodes, stageIndex) {
   const cloned = nodes.map((node) => ({ ...node, occupied: null }));
   let nextId = Math.max(...cloned.map((node) => node.id)) + 1;
 
-  stageNodeBlueprints.slice(0, stageIndex).forEach((blueprints, stageOffset) => {
+  stageNodeBlueprints.slice(0, stageIndex + BASE_ROUTE_EXTENSION_STEPS).forEach((blueprints, stageOffset) => {
     blueprints.forEach((blueprint, blueprintIndex) => {
       const drift = (stageOffset + 1) * 10;
       cloned.push({
