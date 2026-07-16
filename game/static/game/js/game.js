@@ -4,7 +4,7 @@ import { towerTypes } from './towers.js';
 import { enemyTypes, wavePlan } from './waves.js';
 import { state } from './state.js';
 import { saveScore, refreshLeaderboard } from './api.js';
-import { difficulties, scenarioModifiers, createEndlessWave } from './modes.js';
+import { difficulties, scenarioModifiers, createEndlessWave, gameModes, campaignStageCounts, campaignStory, itemTypes } from './modes.js';
 
 const canvas = document.getElementById('battlefield');
 const ctx = canvas.getContext('2d');
@@ -37,6 +37,7 @@ const difficultyPicker = document.getElementById('difficulty-picker');
 const scenarioSelect = document.getElementById('scenario-select');
 const difficultySelect = document.getElementById('difficulty-select');
 const endlessModeInput = document.getElementById('endless-mode');
+const gameModeSelect = document.getElementById('game-mode');
 const playDialog = document.getElementById('play-dialog');
 const defenseStatusValue = document.getElementById('defense-status-value');
 const defenseStatusPanelValue = document.getElementById('defense-status-panel-value');
@@ -134,8 +135,31 @@ function initInfoDialogs() {
 
 initInfoDialogs();
 
+function getCampaignScenarioIndex() {
+  if (state.gameMode !== 'campaign') return state.scenarioIndex || 0;
+  let remaining = state.campaignStage;
+  for (let offset = 0; offset < scenarios.length; offset += 1) {
+    const index = (state.campaignStartScenario + offset) % scenarios.length;
+    if (remaining < campaignStageCounts[index]) return index;
+    remaining -= campaignStageCounts[index];
+  }
+  return state.campaignStartScenario;
+}
+
 function getBaseScenario() {
-  return scenarios[state.scenarioIndex || 0];
+  return scenarios[getCampaignScenarioIndex()];
+}
+
+function getModeWaveLimit() {
+  if (state.gameMode === 'tutorial') return 3;
+  if (state.gameMode === 'campaign') return campaignStageCounts.reduce((sum, count) => sum + count, 0);
+  return wavePlan.length;
+}
+
+function getModeStageLabel() {
+  if (state.gameMode === 'campaign') return `Etapa ${state.campaignStage + 1}/${state.totalStages}`;
+  if (state.gameMode === 'tutorial') return `Lección ${Math.min(state.currentWaveIndex + 1, 3)}/3`;
+  return `Etapa ${getActiveStage()}/${TOTAL_STAGES}`;
 }
 
 function getActiveStage() {
@@ -194,10 +218,13 @@ class Enemy {
     this.towerAttackRange = type.towerAttackRange || 0;
     this.towerAttackCooldown = type.towerAttackCooldown || 1;
     this.towerAttackTimer = 0;
+    this.itemSpeedTimer = 0;
   }
 
   update(dt) {
     if (this.updateTowerAttack(dt)) return true;
+    if (this.itemSpeedTimer > 0) { this.itemSpeedTimer -= dt; if (this.itemSpeedTimer <= 0) this.speed = this.baseSpeed; }
+    collectItemForEnemy(this);
     if (this.slowTimer > 0) {
       this.slowTimer -= dt;
       if (this.slowTimer <= 0) this.speed = this.baseSpeed;
@@ -205,7 +232,9 @@ class Enemy {
 
     const next = this.path[this.pathIndex + 1];
     if (!next) {
-      state.hp -= this.damage;
+      const absorbed = Math.min(state.coreShield || 0, this.damage);
+      state.coreShield = Math.max(0, (state.coreShield || 0) - absorbed);
+      state.hp -= this.damage - absorbed;
       soundEngine.play('hit');
       createFloatingText(this.x - 6, this.y - 20, `-${this.damage} CORE`, '#ff7ca7');
       return false;
@@ -644,6 +673,11 @@ function resetState() {
   state.towersUpgraded = 0;
   state.abilitiesUsed = 0;
   state.gameSeed = '';
+  state.campaignStage = 0;
+  state.totalStages = state.gameMode === 'campaign' ? campaignStageCounts.reduce((sum, count) => sum + count, 0) : (state.gameMode === 'tutorial' ? 3 : TOTAL_STAGES);
+  state.items = [];
+  state.coreShield = 0;
+  state.playerOverchargeTimer = 0;
   nodes = deepCloneNodes();
   closeNodeCommand();
   overlayMessage.classList.remove('hidden');
@@ -667,6 +701,8 @@ function startGame() {
   state.started = true;
   state.playerName = playerNameInput.value.trim() || 'Piloto Anónimo';
   state.startedAt = Date.now();
+  state.campaignStartScenario = state.scenarioIndex || 0;
+  state.totalStages = state.gameMode === 'campaign' ? campaignStageCounts.reduce((sum, count) => sum + count, 0) : (state.gameMode === 'tutorial' ? 3 : TOTAL_STAGES);
   state.gameSeed = `${getBaseScenario().key}-${state.difficulty}-${state.startedAt.toString(36)}`;
   state.scenarioName = getBaseScenario().name;
   overlayMessage.classList.add('hidden');
@@ -678,7 +714,12 @@ function startGame() {
   if (playDialog?.open) playDialog.close();
   renderScenarioPicker();
   renderDifficultyPicker();
-  announce(`Partida iniciada en ${state.scenarioName}, dificultad ${state.difficulty}.`);
+  announce(`${gameModes[state.gameMode].name} iniciada en ${state.scenarioName}, dificultad ${state.difficulty}. ${state.gameMode === 'campaign' ? campaignStory[getCampaignScenarioIndex()] : ''}`);
+  if (state.gameMode === 'campaign') showCampaignBriefing();
+  if (state.gameMode === 'tutorial') {
+    overlayMessage.classList.remove('hidden');
+    overlayMessage.innerHTML = 'TUTORIAL // DEFENDÉ EL CORE<br><small>1. Hacé clic en un nodo y construí torres. 2. Iniciá la oleada. 3. Recogé los ítems antes que los enemigos.</small>';
+  }
   updateHud();
   updateProgressButtons();
 }
@@ -697,9 +738,9 @@ function updateDefenseStatus() {
 function updateHud() {
   const hpText = Math.max(state.hp, 0);
   const creditsText = state.credits;
-  const waveText = state.endlessMode && state.currentWaveIndex + 1 > state.totalWaves
+  const waveText = state.endlessMode && state.gameMode === 'free' && state.currentWaveIndex + 1 > state.totalWaves
     ? `${Math.max(state.currentWaveIndex + (state.waveInProgress ? 1 : 0), 0)} / ∞`
-    : `${Math.max(state.currentWaveIndex + (state.waveInProgress ? 1 : 0), 0)} / ${state.totalWaves}`;
+    : `${Math.max(state.currentWaveIndex + (state.waveInProgress ? 1 : 0), 0)} / ${getModeWaveLimit()}`;
   hud.hp.textContent = hpText;
   hud.hpDetail.textContent = hpText;
   hud.credits.textContent = creditsText;
@@ -710,7 +751,7 @@ function updateHud() {
   hud.score.textContent = state.score;
   comboValue.textContent = `x${state.combo.toFixed(2)}`;
   speedValue.textContent = `${state.speedMultiplier}x`;
-  scenarioValue.textContent = `${getBaseScenario().name} · Etapa ${getActiveStage()}/${TOTAL_STAGES}`;
+  scenarioValue.textContent = `${getBaseScenario().name} · ${getModeStageLabel()}`;
   updateDefenseStatus();
   updateAbilityButtons();
 }
@@ -721,6 +762,8 @@ function syncSetupSelects() {
     scenarioSelect.value = String(state.scenarioIndex || 0);
     scenarioSelect.disabled = state.started;
   }
+  if (gameModeSelect) { gameModeSelect.value = state.gameMode; gameModeSelect.disabled = state.started; }
+  if (endlessModeInput) { endlessModeInput.checked = state.endlessMode; endlessModeInput.disabled = state.started || state.gameMode !== 'free'; }
   if (difficultySelect) {
     difficultySelect.value = state.difficulty;
     difficultySelect.disabled = state.started;
@@ -858,7 +901,7 @@ function renderSelectedTower() {
 
 function updateWavePreview() {
   const nextWaveNumber = state.currentWaveIndex + 2;
-  const next = wavePlan[state.currentWaveIndex + 1] || (state.endlessMode ? createEndlessWave(nextWaveNumber) : null);
+  const next = (state.currentWaveIndex + 1 < getModeWaveLimit() ? wavePlan[(state.currentWaveIndex + 1) % wavePlan.length] : null) || (state.gameMode === 'free' && state.endlessMode ? createEndlessWave(nextWaveNumber) : null);
   wavePreview.textContent = next ? next.map((type) => enemyTypes[type].name).join(' · ') : 'FINAL';
 }
 
@@ -981,10 +1024,11 @@ function resumeSavedProgress() {
 }
 
 function spawnWave() {
-  if (!state.started || state.waveInProgress || (!state.endlessMode && state.currentWaveIndex + 1 >= wavePlan.length) || state.gameOver) return;
+  if (!state.started || state.waveInProgress || (!(state.gameMode === 'free' && state.endlessMode) && state.currentWaveIndex + 1 >= getModeWaveLimit()) || state.gameOver) return;
   soundEngine.play('wave');
   state.currentWaveIndex += 1;
-  const queue = [...(wavePlan[state.currentWaveIndex] || createEndlessWave(state.currentWaveIndex + 1))];
+  const queue = [...(state.currentWaveIndex < getModeWaveLimit() ? wavePlan[state.currentWaveIndex % wavePlan.length] : createEndlessWave(state.currentWaveIndex + 1))];
+  spawnBattleItem();
   state.pendingSpawn = { queue, timer: 0.6, routeCursor: 0 };
   state.waveInProgress = true;
   nextWaveButton.disabled = true;
@@ -1009,13 +1053,21 @@ function updateSpawns(dt) {
   if (!state.pendingSpawn.queue.length && !state.enemies.length) {
     state.pendingSpawn = null;
     state.waveInProgress = false;
-    if (!state.endlessMode && state.currentWaveIndex + 1 >= wavePlan.length) {
+    if (!(state.gameMode === 'free' && state.endlessMode) && state.currentWaveIndex + 1 >= getModeWaveLimit()) {
       finishGame(true);
     } else {
       const scenarioBonus = getScenarioModifier().creditsPerWave || 0;
       state.credits += 80 + state.currentWaveIndex * 15 + scenarioBonus;
       state.score += 100;
-      if ((state.currentWaveIndex + 1) % STAGE_SIZE === 0) {
+      if (state.gameMode === 'campaign') {
+        state.campaignStage += 1;
+        completeCampaignStage();
+        return;
+      }
+      if (state.gameMode === 'tutorial') {
+        overlayMessage.classList.remove('hidden'); overlayMessage.innerHTML = `LECCIÓN ${state.currentWaveIndex + 1} COMPLETADA<br><small>${['Construí torres en nodos vacíos.', 'Recogé ítems con un clic antes que el enemigo.', 'Combiná torres y habilidades para defender el Core.'][state.currentWaveIndex] || ''}</small>`;
+      }
+      if (state.gameMode === 'free' && (state.currentWaveIndex + 1) % STAGE_SIZE === 0) {
         completeStage();
         return;
       }
@@ -1026,6 +1078,78 @@ function updateSpawns(dt) {
       updateWavePreview();
     }
   }
+}
+
+function spawnBattleItem() {
+  const scenario = getActiveScenario();
+  const route = scenario.routes[Math.floor(Math.random() * scenario.routes.length)];
+  const point = route[Math.min(route.length - 2, 2 + Math.floor(Math.random() * Math.max(1, route.length - 3)))];
+  const keys = Object.keys(itemTypes);
+  state.items.push({ key: keys[Math.floor(Math.random() * keys.length)], x: point.x + 24, y: point.y - 26, radius: 16 });
+  if (state.items.length > 3) state.items.shift();
+}
+
+function applyItem(item, recipient) {
+  const type = itemTypes[item.key];
+  if (recipient === 'player') {
+    if (item.key === 'credits') state.credits += 65;
+    if (item.key === 'repair') state.hp = Math.min(state.maxHp, state.hp + 3);
+    if (item.key === 'overcharge') state.playerOverchargeTimer = 7;
+    if (item.key === 'shield') state.coreShield = (state.coreShield || 0) + 4;
+    createFloatingText(item.x - 20, item.y - 22, type.icon, type.color);
+    announce(`${type.name}: ${type.player}`);
+  } else {
+    if (item.key === 'credits') recipient.reward += 25;
+    if (item.key === 'repair') recipient.hp = Math.min(recipient.maxHp, recipient.hp + 35);
+    if (item.key === 'overcharge') { recipient.speed = recipient.baseSpeed * 1.35; recipient.itemSpeedTimer = 5; }
+    if (item.key === 'shield') recipient.shield += 40;
+    createFloatingText(item.x - 20, item.y - 22, 'ENEMIGO', '#ff7ca7');
+  }
+  soundEngine.play('ability');
+  updateHud();
+}
+
+function collectItemForEnemy(enemy) {
+  const item = state.items.find((entry) => Math.hypot(entry.x - enemy.x, entry.y - enemy.y) <= enemy.radius + entry.radius);
+  if (!item) return;
+  state.items = state.items.filter((entry) => entry !== item);
+  applyItem(item, enemy);
+}
+
+function collectItemAt(x, y) {
+  if (!state.started || state.gameOver) return false;
+  const item = state.items.find((entry) => Math.hypot(entry.x - x, entry.y - y) <= entry.radius + 10);
+  if (!item) return false;
+  state.items = state.items.filter((entry) => entry !== item);
+  applyItem(item, 'player');
+  return true;
+}
+
+function drawItems() {
+  state.items.forEach((item) => {
+    const type = itemTypes[item.key];
+    ctx.save(); ctx.shadowColor = type.color; ctx.shadowBlur = 16;
+    ctx.fillStyle = `${type.color}44`; ctx.strokeStyle = type.color; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(item.x, item.y, item.radius, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = type.color; ctx.font = 'bold 17px Inter'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(type.icon, item.x, item.y + 1); ctx.restore();
+  });
+}
+
+function showCampaignBriefing() {
+  overlayMessage.classList.remove('hidden');
+  overlayMessage.innerHTML = `CAMPAÑA // ${getBaseScenario().name}<br><small>${campaignStory[getCampaignScenarioIndex()]}</small>`;
+}
+
+function completeCampaignStage() {
+  if (state.campaignStage >= state.totalStages) { finishGame(true); return; }
+  const previous = getCampaignScenarioIndex();
+  prepareNextStage();
+  const next = getCampaignScenarioIndex();
+  nextWaveButton.disabled = false;
+  overlayMessage.classList.remove('hidden');
+  overlayMessage.innerHTML = `ETAPA ${state.campaignStage}/${state.totalStages} COMPLETADA<br><small>${previous !== next ? campaignStory[next] : 'La resistencia continúa: reforzá tus defensas.'}</small>`;
+  announce(`Campaña: ${getModeStageLabel()} en ${getBaseScenario().name}.`);
+  updateHud(); updateWavePreview(); updateProgressButtons();
 }
 
 function finishGame(victory) {
@@ -1045,7 +1169,7 @@ function finishGame(victory) {
   soundEngine.play(victory ? 'start' : 'end');
   const title = victory ? 'SECTOR ASEGURADO' : 'CORE COLAPSADO';
   const subtitle = victory
-    ? `Sobreviviste a las ${state.totalWaves} oleadas en ${TOTAL_STAGES} etapas.`
+    ? `Completaste ${gameModes[state.gameMode].name}: ${getModeWaveLimit()} oleadas y ${state.totalStages} etapas.`
     : `Llegaste hasta la oleada ${Math.max(state.currentWaveIndex + 1, 0)}.`;
 
   overlayMessage.classList.remove('hidden');
@@ -1073,6 +1197,7 @@ function drawBattlefield() {
     drawPaths(scenario);
     drawNodes();
     drawCore(scenario);
+    drawItems();
 
     state.towers.forEach((tower) => tower.draw());
     state.projectiles.forEach((projectile) => projectile.draw());
@@ -1232,7 +1357,8 @@ function updateGame(dt) {
   if (!state.started || state.paused || state.gameOver) return;
 
   updateSpawns(dt);
-  state.towers.forEach((tower) => tower.update(dt));
+  if (state.playerOverchargeTimer > 0) state.playerOverchargeTimer -= dt;
+  state.towers.forEach((tower) => tower.update(dt * (state.playerOverchargeTimer > 0 ? 1.45 : 1)));
   state.projectiles = state.projectiles.filter((projectile) => projectile.update(dt));
   state.enemies = state.enemies.filter((enemy) => enemy.update(dt));
   updateFloatingTexts(dt);
@@ -1356,6 +1482,7 @@ function replaceTowerAtNode(node, towerTypeKey) {
 function handleCanvasClick(event) {
   if (!state.started || state.gameOver) return;
   const { x, y } = getCanvasCoordinates(event);
+  if (collectItemAt(x, y)) return;
   const node = nodes.find((entry) => Math.hypot(entry.x - x, entry.y - y) <= 30);
   if (node) {
     openNodeCommand(node);
@@ -1446,6 +1573,12 @@ difficultySelect?.addEventListener('change', () => {
   if (state.started) return;
   if (!difficulties[difficultySelect.value]) return;
   state.difficulty = difficultySelect.value;
+  resetState();
+});
+gameModeSelect?.addEventListener('change', () => {
+  if (state.started || !gameModes[gameModeSelect.value]) return;
+  state.gameMode = gameModeSelect.value;
+  state.endlessMode = false;
   resetState();
 });
 endlessModeInput?.addEventListener('change', () => {

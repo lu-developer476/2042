@@ -20,7 +20,13 @@
               <label class="label" for="player-name" data-i18n="pilotName">Nombre del piloto</label>
               <input id="player-name" class="input" type="text" maxlength="30" placeholder="Ej: Lu" data-i18n-placeholder="pilotPlaceholder" />
               <div>
-                <label class="label" for="scenario-select">Escenario</label>
+                <label class="label" for="game-mode">Modo</label>
+                <select id="game-mode" class="input setup-select" aria-label="Elegir modo de juego">
+                  <option value="tutorial">Tutorial</option><option value="campaign">Campaña</option><option value="free" selected>Libre</option>
+                </select>
+              </div>
+              <div>
+                <label class="label" for="scenario-select">Escenario inicial</label>
                 <select id="scenario-select" class="input setup-select" aria-label="Elegir escenario">
                   <option value="0">Muelles de Neón</option>
                   <option value="1">Desierto Ígneo</option>
@@ -40,7 +46,7 @@
               </div>
               <label class="microcopy endless-toggle">
                 <input id="endless-mode" type="checkbox" />
-                Modo infinito después de la oleada 25
+                Modo infinito después de la oleada 25 (solo Libre)
               </label>
               <button id="start-game" class="button primary" data-i18n="startSimulation">Confirmar partida y jugar</button>
               <button id="resume-progress" class="button ghost" type="button" disabled>Retomar progreso guardado</button>

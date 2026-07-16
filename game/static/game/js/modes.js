@@ -20,3 +20,26 @@ export function createEndlessWave(waveNumber) {
   if (waveNumber % 3 === 0) wave.push('boss');
   return wave;
 }
+
+
+export const gameModes = {
+  tutorial: { key: 'tutorial', name: 'Tutorial', description: 'Aprendé a construir, usar ítems y defender el Core en 3 oleadas guiadas.' },
+  campaign: { key: 'campaign', name: 'Campaña', description: 'Una travesía narrativa por los cinco escenarios; cada sector suma sus propias etapas.' },
+  free: { key: 'free', name: 'Libre', description: 'La simulación clásica para jugar a tu manera, con 25 oleadas y modo infinito opcional.' },
+};
+
+export const campaignStageCounts = [2, 3, 3, 4, 5];
+export const campaignStory = [
+  'La señal del Overseer emerge entre los contenedores. Asegurá los Muelles de Neón.',
+  'El rastro térmico cruza el Desierto Ígneo: el convoy enemigo acelera.',
+  'Las Ruinas Aurora revelan un antiguo relé. Evitá que el enemigo lo corrompa.',
+  'La transmisión asciende al Bastión Orbital. La defensa ya está en alerta máxima.',
+  'El pulso final invade el Dosel Bioforja. Protegé el Core y cortá la mutación.',
+];
+
+export const itemTypes = {
+  credits: { name: 'Cápsula de créditos', color: '#ffc869', icon: '¢', player: 'Otorga 65 créditos.', enemy: 'Entrega 25 créditos extra al enemigo.' },
+  repair: { name: 'Nano-reparador', color: '#6cff95', icon: '+', player: 'Repara 3 HP del Core.', enemy: 'Restaura 35 HP al enemigo.' },
+  overcharge: { name: 'Celda de sobrecarga', color: '#6df2ff', icon: '⚡', player: 'Las torres disparan más rápido durante 7 segundos.', enemy: 'Aumenta su velocidad durante 5 segundos.' },
+  shield: { name: 'Escudo prismático', color: '#d8a7ff', icon: '◈', player: 'Da un escudo de 4 HP al Core.', enemy: 'Otorga 40 puntos de escudo.' },
+};
