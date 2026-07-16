@@ -138,47 +138,99 @@ export const scenarios = [
 export const STAGE_SIZE = 5;
 export const TOTAL_STAGES = 5;
 
-const difficultyRouteOffsets = {
-  easy: 0,
-  normal: 10,
-  hard: 20,
-  nightmare: 30,
-};
+const STAGE_ROUTE_GROWTH = 92;
+const DETOUR_WIDTH_GROWTH = 68;
 
 function clonePoint(point) {
   return { ...point };
 }
 
-function extendRoute(route, stageIndex, difficultyKey) {
-  const offset = difficultyRouteOffsets[difficultyKey] ?? difficultyRouteOffsets.normal;
-  const extended = route.map(clonePoint);
-  if (stageIndex <= 0) return extended;
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
 
-  const insertionIndex = Math.max(1, extended.length - 2);
+function insertStageDetour(route, stageStep) {
+  const extended = route.map(clonePoint);
+  const insertionIndex = clamp(extended.length - 2 - (stageStep % 2), 1, extended.length - 2);
   const anchor = extended[insertionIndex];
   const previous = extended[insertionIndex - 1];
-  const verticalDirection = anchor.y > previous.y ? 1 : -1;
-  const detourDepth = Math.min(58 + stageIndex * 26 + offset, 150);
-  const detourWidth = 54 + stageIndex * 18;
-  const y = Math.max(55, Math.min(505, anchor.y + verticalDirection * detourDepth));
-  const x = Math.max(120, Math.min(850, anchor.x + detourWidth));
-  extended.splice(insertionIndex + 1, 0, { x: anchor.x, y }, { x, y }, { x, y: anchor.y });
+  const next = extended[insertionIndex + 1] || anchor;
+  const verticalDirection = anchor.y >= previous.y ? 1 : -1;
+  const alternateDirection = stageStep % 2 === 0 ? verticalDirection : -verticalDirection;
+  const detourDepth = Math.min(70 + STAGE_ROUTE_GROWTH * stageStep, 230);
+  const detourWidth = 72 + DETOUR_WIDTH_GROWTH * stageStep;
+  const y = clamp(anchor.y + alternateDirection * detourDepth, 55, 525);
+  const x = clamp(Math.max(anchor.x, next.x) + detourWidth, 120, 890);
 
-  if (stageIndex >= 3) {
-    const secondAnchor = extended[Math.max(1, Math.floor(extended.length / 2))];
-    const secondY = Math.max(70, Math.min(490, secondAnchor.y - verticalDirection * (70 + offset)));
-    extended.splice(Math.max(2, Math.floor(extended.length / 2)) + 1, 0, { x: secondAnchor.x, y: secondY });
+  extended.splice(insertionIndex + 1, 0, { x: anchor.x, y }, { x, y }, { x, y: next.y });
+  return extended;
+}
+
+function extendRoute(route, stageIndex) {
+  let extended = route.map(clonePoint);
+  for (let stageStep = 1; stageStep <= stageIndex; stageStep += 1) {
+    extended = insertStageDetour(extended, stageStep);
   }
   return extended;
 }
 
-function stageNodes(nodes, stageIndex, difficultyKey) {
-  const offset = (difficultyRouteOffsets[difficultyKey] ?? difficultyRouteOffsets.normal) / 2;
+function createStageRoute(route, stageIndex, routeIndex) {
+  const shifted = route.map((point, index) => {
+    if (index === 0) {
+      const direction = (stageIndex + routeIndex) % 2 === 0 ? -1 : 1;
+      return { x: point.x, y: clamp(point.y + direction * (36 + stageIndex * 10), 55, 525) };
+    }
+    return clonePoint(point);
+  });
+
+  return extendRoute(shifted, stageIndex + routeIndex + 1);
+}
+
+function stageRoutes(routes, stageIndex) {
+  const extendedRoutes = routes.map((route) => extendRoute(route, stageIndex));
+  if (stageIndex <= 0) return extendedRoutes;
+
+  const extraRouteCount = Math.min(stageIndex, routes.length + 1);
+  for (let index = 0; index < extraRouteCount; index += 1) {
+    const baseRoute = routes[index % routes.length];
+    extendedRoutes.push(createStageRoute(baseRoute, stageIndex, index));
+  }
+
+  return extendedRoutes;
+}
+
+const stageNodeBlueprints = [
+  [
+    { x: 455, y: 455 }, { x: 605, y: 390 },
+  ],
+  [
+    { x: 840, y: 126 }, { x: 735, y: 245 },
+  ],
+  [
+    { x: 285, y: 290 }, { x: 500, y: 75 },
+  ],
+  [
+    { x: 700, y: 205 }, { x: 150, y: 430 },
+  ],
+];
+
+function stageNodes(nodes, stageIndex) {
   const cloned = nodes.map((node) => ({ ...node, occupied: null }));
-  if (stageIndex >= 1) cloned.push({ id: 9, x: 455 + offset, y: 455 - stageIndex * 12, occupied: null });
-  if (stageIndex >= 2) cloned.push({ id: 10, x: 840 - offset, y: 90 + stageIndex * 18, occupied: null });
-  if (stageIndex >= 3) cloned.push({ id: 11, x: 210 + stageIndex * 25, y: 285 + offset, occupied: null });
-  if (stageIndex >= 4) cloned.push({ id: 12, x: 700 - offset, y: 155 + stageIndex * 15, occupied: null });
+  let nextId = Math.max(...cloned.map((node) => node.id)) + 1;
+
+  stageNodeBlueprints.slice(0, stageIndex).forEach((blueprints, stageOffset) => {
+    blueprints.forEach((blueprint, blueprintIndex) => {
+      const drift = (stageOffset + 1) * 10;
+      cloned.push({
+        id: nextId,
+        x: clamp(blueprint.x + (blueprintIndex === 0 ? drift : -drift), 55, 905),
+        y: clamp(blueprint.y + (blueprintIndex === 0 ? -drift : drift), 55, 525),
+        occupied: null,
+      });
+      nextId += 1;
+    });
+  });
+
   return cloned;
 }
 
@@ -190,7 +242,7 @@ export function getScenarioLayout(scenario, waveIndex = 0, difficultyKey = 'norm
   const stageIndex = getStageForWave(waveIndex) - 1;
   return {
     ...scenario,
-    routes: scenario.routes.map((route) => extendRoute(route, stageIndex, difficultyKey)),
-    nodes: stageNodes(scenario.nodes, stageIndex, difficultyKey),
+    routes: stageRoutes(scenario.routes, stageIndex),
+    nodes: stageNodes(scenario.nodes, stageIndex),
   };
 }
