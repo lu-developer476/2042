@@ -1774,3 +1774,24 @@ summary,
     line-height: 1.25;
   }
 }
+
+.guide-enemies {
+  width: 100%;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+  text-align: left;
+}
+
+.guide-enemies h3 { margin: 0 0 6px; text-align: center; }
+.guide-enemies > .microcopy { margin: 0; text-align: center; }
+.guide-enemy-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+.guide-enemy-grid article { padding: 12px; border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 10px; background: rgba(255, 94, 142, .06); }
+.guide-enemy-grid p { margin: 6px 0 0; color: var(--muted); font-size: .84rem; line-height: 1.35; }
+.guide-enemy-grid span { display: block; }
+
+@media (max-width: 560px) {
+  .guide-dialog { max-height: calc(100dvh - 20px); overflow-y: auto; }
+  .guide-enemy-grid { grid-template-columns: 1fr; gap: 7px; margin: 10px 0; }
+  .guide-enemy-grid article { padding: 9px; }
+  .guide-enemy-grid p { font-size: .74rem; }
+}
