@@ -17,6 +17,8 @@ export const state = {
   towers: [],
   enemies: [],
   projectiles: [],
+  enemyProjectiles: [],
+  interceptors: [],
   floatingTexts: [],
   pendingSpawn: null,
   waveInProgress: false,

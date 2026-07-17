@@ -1,11 +1,11 @@
 export const enemyTypes = {
-  scout: { name: 'Drone Scout', hp: 28, speed: 80, reward: 16, damage: 1, color: '#6df2ff', score: 18 },
-  crawler: { name: 'Crawler Unit', hp: 62, speed: 48, reward: 24, damage: 1, color: '#8cff7e', score: 28, resistances: { pulse: 0.88 } },
-  tank: { name: 'Tank Mech', hp: 150, speed: 28, reward: 45, damage: 2, color: '#ffbf69', score: 65, resistances: { pulse: 0.72, slow: 0.65 } },
-  ghost: { name: 'Ghost Signal', hp: 90, speed: 68, reward: 36, damage: 1, color: '#d8a7ff', score: 48, evadeChance: 0.18, resistances: { slow: 0.5 }, vulnerabilities: { pulse: 1.1 } },
-  aegis: { name: 'Aegis Guard', hp: 86, shield: 70, speed: 38, reward: 38, damage: 1, color: '#7ef7c8', score: 54, resistances: { pulse: 0.82, slow: 0.8 }, vulnerabilities: { missile: 1.18 } },
+  scout: { name: 'Drone Scout', hp: 28, speed: 80, reward: 16, damage: 1, color: '#6df2ff', score: 18, towerAttackDamage: 4, towerAttackRange: 108, towerAttackCooldown: 1.4 },
+  crawler: { name: 'Crawler Unit', hp: 62, speed: 48, reward: 24, damage: 1, color: '#8cff7e', score: 28, towerAttackDamage: 6, towerAttackRange: 98, towerAttackCooldown: 1.55, resistances: { pulse: 0.88 } },
+  tank: { name: 'Tank Mech', hp: 150, speed: 28, reward: 45, damage: 2, color: '#ffbf69', score: 65, towerAttackDamage: 11, towerAttackRange: 132, towerAttackCooldown: 1.8, resistances: { pulse: 0.72, slow: 0.65 } },
+  ghost: { name: 'Ghost Signal', hp: 90, speed: 68, reward: 36, damage: 1, color: '#d8a7ff', score: 48, towerAttackDamage: 5, towerAttackRange: 116, towerAttackCooldown: 1.25, evadeChance: 0.18, resistances: { slow: 0.5 }, vulnerabilities: { pulse: 1.1 } },
+  aegis: { name: 'Aegis Guard', hp: 86, shield: 70, speed: 38, reward: 38, damage: 1, color: '#7ef7c8', score: 54, towerAttackDamage: 8, towerAttackRange: 118, towerAttackCooldown: 1.45, resistances: { pulse: 0.82, slow: 0.8 }, vulnerabilities: { missile: 1.18 } },
   saboteur: { name: 'Tower Saboteur', hp: 118, speed: 44, reward: 52, damage: 1, color: '#ff7ca7', score: 78, towerAttackDamage: 13, towerAttackRange: 34, towerAttackCooldown: 1.15, resistances: { slow: 0.75 }, vulnerabilities: { burst: 1.12 } },
-  boss: { name: 'Overseer', hp: 520, speed: 24, reward: 140, damage: 5, color: '#ff5e8e', score: 220, resistances: { pulse: 0.8, slow: 0.55 }, vulnerabilities: { burst: 1.15 } },
+  boss: { name: 'Overseer', hp: 520, speed: 24, reward: 140, damage: 5, color: '#ff5e8e', score: 220, towerAttackDamage: 18, towerAttackRange: 154, towerAttackCooldown: 1.7, resistances: { pulse: 0.8, slow: 0.55 }, vulnerabilities: { burst: 1.15 } },
 };
 
 export const wavePlan = [
