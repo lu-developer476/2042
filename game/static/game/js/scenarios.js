@@ -143,6 +143,7 @@ const DETOUR_WIDTH_GROWTH = 118;
 const BASE_ROUTE_EXTENSION_STEPS = 1;
 const STAGE_WORLD_WIDTH_GROWTH = 220;
 const BASE_WORLD_WIDTH = 960;
+const WORLD_HEIGHT = 540;
 
 function clonePoint(point) {
   return { ...point };
@@ -156,15 +157,12 @@ function insertStageDetour(route, stageStep, routeIndex = 0) {
   const extended = route.map(clonePoint);
   const insertionIndex = clamp(extended.length - 2 - ((stageStep + routeIndex) % 3), 1, extended.length - 2);
   const anchor = extended[insertionIndex];
-  const previous = extended[insertionIndex - 1];
   const next = extended[insertionIndex + 1] || anchor;
-  const verticalDirection = anchor.y >= previous.y ? 1 : -1;
+  const verticalDirection = anchor.y >= extended[insertionIndex - 1].y ? 1 : -1;
   const alternateDirection = (stageStep + routeIndex) % 2 === 0 ? verticalDirection : -verticalDirection;
-  const detourDepth = Math.min(92 + STAGE_ROUTE_GROWTH * stageStep + routeIndex * 24, 292);
-  const detourWidth = 126 + DETOUR_WIDTH_GROWTH * stageStep + routeIndex * 42;
   const worldWidth = BASE_WORLD_WIDTH + STAGE_WORLD_WIDTH_GROWTH * stageStep;
-  const y = clamp(anchor.y + alternateDirection * detourDepth, 45, 535);
-  const x = clamp(Math.max(anchor.x, next.x) + detourWidth, 120, worldWidth - 48);
+  const y = clamp(anchor.y + alternateDirection * Math.min(92 + STAGE_ROUTE_GROWTH * stageStep + routeIndex * 24, 292), 45, WORLD_HEIGHT - 5);
+  const x = clamp(Math.max(anchor.x, next.x) + 126 + DETOUR_WIDTH_GROWTH * stageStep + routeIndex * 42, 120, worldWidth - 48);
 
   extended.splice(insertionIndex + 1, 0, { x: anchor.x, y }, { x, y }, { x, y: next.y });
   return extended;
@@ -172,72 +170,111 @@ function insertStageDetour(route, stageStep, routeIndex = 0) {
 
 function extendRoute(route, stageIndex, routeIndex = 0) {
   let extended = route.map(clonePoint);
-  for (let stageStep = 1; stageStep <= stageIndex; stageStep += 1) {
-    extended = insertStageDetour(extended, stageStep, routeIndex);
-  }
+  for (let stageStep = 1; stageStep <= stageIndex; stageStep += 1) extended = insertStageDetour(extended, stageStep, routeIndex);
   const coreX = BASE_WORLD_WIDTH + STAGE_WORLD_WIDTH_GROWTH * Math.max(stageIndex - BASE_ROUTE_EXTENSION_STEPS, 0);
   const lastPoint = extended[extended.length - 1];
   return [...extended.slice(0, -1), { ...lastPoint, x: coreX }];
 }
 
-function createStageRoute(route, stageIndex, routeIndex) {
-  const shifted = route.map((point, index) => {
-    if (index === 0) {
-      const direction = (stageIndex + routeIndex) % 2 === 0 ? -1 : 1;
-      return { x: point.x, y: clamp(point.y + direction * (36 + stageIndex * 10), 55, 525) };
-    }
-    return clonePoint(point);
-  });
-
+function createLeftRoute(route, stageIndex, routeIndex) {
+  const shifted = route.map((point, index) => index === 0
+    ? { x: point.x, y: clamp(point.y + ((stageIndex + routeIndex) % 2 === 0 ? -1 : 1) * (36 + stageIndex * 10), 55, 525) }
+    : clonePoint(point));
   return extendRoute(shifted, stageIndex + routeIndex + 1, routeIndex + 1);
+}
+
+function createVerticalIngressRoute(stageIndex, ingressIndex, fromTop) {
+  const coreX = BASE_WORLD_WIDTH + STAGE_WORLD_WIDTH_GROWTH * stageIndex;
+  const entryX = 210 + ((stageIndex * 137 + ingressIndex * 173) % Math.max(260, coreX - 480));
+  const laneY = fromTop ? 110 + (ingressIndex % 2) * 56 : WORLD_HEIGHT - 110 - (ingressIndex % 2) * 56;
+  const mergeX = Math.max(entryX + 150, coreX - 310 - ingressIndex * 42);
+  const turnY = fromTop ? 300 + (ingressIndex % 2) * 52 : 245 - (ingressIndex % 2) * 48;
+  return [
+    { x: entryX, y: fromTop ? 0 : WORLD_HEIGHT },
+    { x: entryX, y: laneY },
+    { x: mergeX, y: laneY },
+    { x: mergeX, y: turnY },
+    { x: coreX - 110, y: 470 },
+    { x: coreX, y: 470 },
+  ];
 }
 
 function stageRoutes(routes, stageIndex) {
   const extensionSteps = stageIndex + BASE_ROUTE_EXTENSION_STEPS;
   const extendedRoutes = routes.map((route, routeIndex) => extendRoute(route, extensionSteps, routeIndex));
-  if (stageIndex <= 0) return extendedRoutes;
+  if (stageIndex === 0) return extendedRoutes;
 
-  const extraRouteCount = Math.min(stageIndex, routes.length + 1);
-  for (let index = 0; index < extraRouteCount; index += 1) {
-    const baseRoute = routes[index % routes.length];
-    extendedRoutes.push(createStageRoute(baseRoute, extensionSteps, index));
+  // Every new stage opens vertical attack vectors: first from above, then below,
+  // and finally both sides receive additional procedural branches.
+  const ingressCount = Math.min(stageIndex + 1, TOTAL_STAGES);
+  for (let ingressIndex = 0; ingressIndex < ingressCount; ingressIndex += 1) {
+    const fromTop = ingressIndex % 2 === 0;
+    extendedRoutes.push(createVerticalIngressRoute(stageIndex, ingressIndex, fromTop));
   }
+  if (stageIndex >= 3) extendedRoutes.push(createVerticalIngressRoute(stageIndex, ingressCount, false));
 
   return extendedRoutes;
 }
 
-const stageNodeBlueprints = [
-  [
-    { x: 455, y: 455 }, { x: 605, y: 390 }, { x: 835, y: 120 },
-  ],
-  [
-    { x: 840, y: 126 }, { x: 735, y: 245 }, { x: 205, y: 470 },
-  ],
-  [
-    { x: 285, y: 290 }, { x: 500, y: 75 }, { x: 900, y: 360 },
-  ],
-  [
-    { x: 700, y: 205 }, { x: 150, y: 430 }, { x: 420, y: 500 },
-  ],
-];
+function distanceToSegment(point, start, end) {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const lengthSquared = dx * dx + dy * dy || 1;
+  const t = clamp(((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared, 0, 1);
+  return Math.hypot(point.x - (start.x + dx * t), point.y - (start.y + dy * t));
+}
 
-function stageNodes(nodes, stageIndex) {
+function isNearRoute(point, routes) {
+  return routes.some((route) => route.slice(1).some((end, index) => distanceToSegment(point, route[index], end) < 42));
+}
+
+function stageNodes(nodes, routes, stageIndex, worldWidth) {
   const cloned = nodes.map((node) => ({ ...node, occupied: null }));
   let nextId = Math.max(...cloned.map((node) => node.id)) + 1;
+  const candidates = [];
 
-  stageNodeBlueprints.slice(0, stageIndex + BASE_ROUTE_EXTENSION_STEPS).forEach((blueprints, stageOffset) => {
-    blueprints.forEach((blueprint, blueprintIndex) => {
-      const drift = (stageOffset + 1) * 10;
-      cloned.push({
-        id: nextId,
-        x: clamp(blueprint.x + (blueprintIndex === 0 ? drift : -drift), 55, 905),
-        y: clamp(blueprint.y + (blueprintIndex === 0 ? -drift : drift), 55, 525),
-        occupied: null,
+  routes.slice(nodes.length > 0 ? 0 : 0).forEach((route, routeIndex) => {
+    if (routeIndex < 2 && stageIndex === 0) return;
+    route.slice(1, -1).forEach((point, pointIndex) => {
+      if ((pointIndex + routeIndex) % 2 !== 0) return;
+      const previous = route[pointIndex];
+      const horizontal = Math.abs(point.x - previous.x) >= Math.abs(point.y - previous.y);
+      const offset = 58 + ((routeIndex + pointIndex + stageIndex) % 2) * 18;
+      candidates.push({
+        x: clamp(point.x + (horizontal ? 0 : (routeIndex % 2 ? -offset : offset)), 48, worldWidth - 48),
+        y: clamp(point.y + (horizontal ? (routeIndex % 2 ? -offset : offset) : 0), 48, WORLD_HEIGHT - 48),
       });
-      nextId += 1;
     });
   });
 
+  // The vertical ingress sectors receive dedicated build sites on both sides of
+  // their lane, so players can answer a top or bottom breach immediately.
+  routes.filter((route) => route[0].y === 0 || route[0].y === WORLD_HEIGHT).forEach((route, index) => {
+    const fromTop = route[0].y === 0;
+    const laneY = route[1].y;
+    const side = index % 2 === 0 ? 1 : -1;
+    candidates.push(
+      { x: clamp(route[0].x + side * 76, 48, worldWidth - 48), y: (route[0].y + laneY) / 2 },
+      { x: (route[1].x + route[2].x) / 2, y: clamp(laneY + (fromTop ? 70 : -70), 48, WORLD_HEIGHT - 48) },
+      { x: clamp(route[2].x + side * 70, 48, worldWidth - 48), y: (route[2].y + route[3].y) / 2 },
+    );
+  });
+
+  const additionsNeeded = 3 + stageIndex * 2;
+  // Deterministic reserve pads keep expanding sectors buildable even where a
+  // route's bends consume the closest positions.
+  for (let attempt = 0; attempt < additionsNeeded * 12; attempt += 1) {
+    candidates.push({
+      x: 58 + ((stageIndex * 149 + attempt * 127) % Math.max(1, worldWidth - 116)),
+      y: 54 + ((stageIndex * 73 + attempt * 89) % (WORLD_HEIGHT - 108)),
+    });
+  }
+  for (const candidate of candidates) {
+    if (cloned.length >= nodes.length + additionsNeeded) break;
+    if (isNearRoute(candidate, routes) || cloned.some((node) => Math.hypot(node.x - candidate.x, node.y - candidate.y) < 68)) continue;
+    cloned.push({ id: nextId, ...candidate, occupied: null });
+    nextId += 1;
+  }
   return cloned;
 }
 
@@ -249,11 +286,12 @@ export function getScenarioLayout(scenario, waveIndex = 0, difficultyKey = 'norm
   const stageIndex = getStageForWave(waveIndex) - 1;
   const routes = stageRoutes(scenario.routes, stageIndex);
   const furthestPoint = Math.max(...routes.flat().map((point) => point.x));
+  const worldWidth = Math.max(BASE_WORLD_WIDTH + STAGE_WORLD_WIDTH_GROWTH * stageIndex, furthestPoint + 40);
   return {
     ...scenario,
     stageIndex,
-    worldWidth: Math.max(BASE_WORLD_WIDTH + STAGE_WORLD_WIDTH_GROWTH * stageIndex, furthestPoint + 40),
+    worldWidth,
     routes,
-    nodes: stageNodes(scenario.nodes, stageIndex),
+    nodes: stageNodes(scenario.nodes, routes, stageIndex, worldWidth),
   };
 }
