@@ -214,6 +214,7 @@ class Enemy {
     this.y = this.path[0].y;
     this.rotation = 0;
     this.slowTimer = 0;
+    this.immobilizeTimer = 0;
     this.towerAttackDamage = type.towerAttackDamage || 0;
     this.towerAttackRange = type.towerAttackRange || 0;
     this.towerAttackCooldown = type.towerAttackCooldown || 1;
@@ -228,6 +229,11 @@ class Enemy {
     if (this.slowTimer > 0) {
       this.slowTimer -= dt;
       if (this.slowTimer <= 0) this.speed = this.baseSpeed;
+    }
+    if (this.immobilizeTimer > 0) {
+      this.immobilizeTimer -= dt;
+      this.speed = 0;
+      if (this.immobilizeTimer <= 0) this.speed = this.baseSpeed;
     }
 
     const next = this.path[this.pathIndex + 1];
@@ -1505,7 +1511,7 @@ empButton.addEventListener('click', () => {
   state.credits -= 160;
   state.abilitiesUsed += 1;
   announce('EMP global activado.');
-  state.enemies.forEach((enemy) => { enemy.hp -= 45; enemy.speed = enemy.baseSpeed * 0.45; enemy.slowTimer = 2.5; });
+  state.enemies.forEach((enemy) => { enemy.hp -= 45; enemy.immobilizeTimer = 3; });
   [...state.enemies].filter((enemy) => enemy.hp <= 0).forEach(destroyEnemy);
   createFloatingText(430, 80, 'EMP', '#6df2ff');
   updateHud();
