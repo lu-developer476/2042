@@ -223,6 +223,13 @@ class Enemy {
   }
 
   update(dt) {
+    if (this.immobilizeTimer > 0) {
+      this.immobilizeTimer -= dt;
+      this.speed = 0;
+      if (this.immobilizeTimer <= 0) this.speed = this.baseSpeed;
+      return true;
+    }
+
     if (this.updateTowerAttack(dt)) return true;
     if (this.itemSpeedTimer > 0) { this.itemSpeedTimer -= dt; if (this.itemSpeedTimer <= 0) this.speed = this.baseSpeed; }
     collectItemForEnemy(this);
@@ -230,12 +237,6 @@ class Enemy {
       this.slowTimer -= dt;
       if (this.slowTimer <= 0) this.speed = this.baseSpeed;
     }
-    if (this.immobilizeTimer > 0) {
-      this.immobilizeTimer -= dt;
-      this.speed = 0;
-      if (this.immobilizeTimer <= 0) this.speed = this.baseSpeed;
-    }
-
     const next = this.path[this.pathIndex + 1];
     if (!next) {
       const absorbed = Math.min(state.coreShield || 0, this.damage);
