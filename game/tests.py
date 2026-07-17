@@ -59,6 +59,13 @@ class LeaderboardViewTests(TestCase):
         self.assertContains(response, 'href="/favicon.jpg"')
         self.assertContains(response, 'href="/site.webmanifest"')
 
+    def test_home_offers_all_five_difficulty_levels(self):
+        response = self.client.get(reverse('home'))
+
+        for difficulty in ('Fácil', 'Normal', 'Difícil', 'Extremo', 'Pesadilla'):
+            with self.subTest(difficulty=difficulty):
+                self.assertContains(response, difficulty)
+
     def test_favicon_assets_are_served_with_expected_content_types(self):
         expected_content_types = {
             '/favicon.ico': 'image/jpeg',
