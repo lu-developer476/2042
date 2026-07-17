@@ -4,7 +4,7 @@ import { towerTypes } from './towers.js';
 import { enemyTypes, wavePlan } from './waves.js';
 import { state } from './state.js';
 import { saveScore, refreshLeaderboard } from './api.js';
-import { difficulties, scenarioModifiers, createEndlessWave, gameModes, campaignStageCounts, campaignStory, itemTypes } from './modes.js';
+import { difficulties, scenarioModifiers, createEndlessWave, createProceduralWave, getStageScaling, gameModes, campaignStageCounts, campaignStory, itemTypes } from './modes.js';
 
 const canvas = document.getElementById('battlefield');
 const ctx = canvas.getContext('2d');
@@ -192,17 +192,18 @@ class Enemy {
     this.name = type.name;
     const difficulty = getDifficulty();
     const modifier = getScenarioModifier();
-    const endlessScale = state.currentWaveIndex >= wavePlan.length ? 1 + ((state.currentWaveIndex - wavePlan.length + 1) * 0.12) : 1;
-    this.maxHp = Math.round(type.hp * difficulty.enemyHp * endlessScale);
+    const waveNumber = state.currentWaveIndex + 1;
+    const stageScaling = getStageScaling(waveNumber, state.difficulty);
+    this.maxHp = Math.round(type.hp * difficulty.enemyHp * stageScaling.hp);
     this.hp = this.maxHp;
-    this.maxShield = Math.round((type.shield || 0) * difficulty.enemyHp * endlessScale);
+    this.maxShield = Math.round((type.shield || 0) * difficulty.enemyHp * stageScaling.hp);
     this.shield = this.maxShield;
-    this.baseSpeed = type.speed * difficulty.enemySpeed * (modifier.enemySpeed || 1);
+    this.baseSpeed = type.speed * difficulty.enemySpeed * stageScaling.speed * (modifier.enemySpeed || 1);
     this.speed = this.baseSpeed;
-    this.reward = Math.round(type.reward * difficulty.reward);
-    this.damage = type.damage;
+    this.reward = Math.round(type.reward * difficulty.reward * stageScaling.reward);
+    this.damage = Math.max(1, Math.round(type.damage * stageScaling.damage));
     this.color = type.color;
-    this.scoreValue = type.score;
+    this.scoreValue = Math.round(type.score * stageScaling.score);
     this.evadeChance = type.evadeChance || 0;
     this.resistances = type.resistances || {};
     this.vulnerabilities = type.vulnerabilities || {};
@@ -908,7 +909,7 @@ function renderSelectedTower() {
 
 function updateWavePreview() {
   const nextWaveNumber = state.currentWaveIndex + 2;
-  const next = (state.currentWaveIndex + 1 < getModeWaveLimit() ? wavePlan[(state.currentWaveIndex + 1) % wavePlan.length] : null) || (state.gameMode === 'free' && state.endlessMode ? createEndlessWave(nextWaveNumber) : null);
+  const next = (state.currentWaveIndex + 1 < getModeWaveLimit() ? createProceduralWave(nextWaveNumber, state.difficulty) : null) || (state.gameMode === 'free' && state.endlessMode ? createEndlessWave(nextWaveNumber, state.difficulty) : null);
   wavePreview.textContent = next ? next.map((type) => enemyTypes[type].name).join(' · ') : 'FINAL';
 }
 
@@ -1034,7 +1035,9 @@ function spawnWave() {
   if (!state.started || state.waveInProgress || (!(state.gameMode === 'free' && state.endlessMode) && state.currentWaveIndex + 1 >= getModeWaveLimit()) || state.gameOver) return;
   soundEngine.play('wave');
   state.currentWaveIndex += 1;
-  const queue = [...(state.currentWaveIndex < getModeWaveLimit() ? wavePlan[state.currentWaveIndex % wavePlan.length] : createEndlessWave(state.currentWaveIndex + 1))];
+  const queue = [...(state.currentWaveIndex < getModeWaveLimit()
+    ? createProceduralWave(state.currentWaveIndex + 1, state.difficulty)
+    : createEndlessWave(state.currentWaveIndex + 1, state.difficulty))];
   spawnBattleItem();
   state.pendingSpawn = { queue, timer: 0.6, routeCursor: 0 };
   state.waveInProgress = true;

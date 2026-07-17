@@ -11,9 +11,9 @@ Juego web de defensa de torres futurista desarrollado con **Django** y **JavaScr
 ## Características
 
 - Cinco escenarios con rutas, nodos de construcción y modificadores propios: **Muelles de Neón**, **Desierto Ígneo**, **Ruinas Aurora**, **Bastión Orbital** y **Dosel Bioforja**.
-- Cuatro dificultades: Fácil, Normal, Difícil y Pesadilla; y tres modos de juego: Tutorial, Campaña y Libre.
+- Cinco dificultades: Fácil, Normal, Difícil, Extremo y Pesadilla; y tres modos de juego: Tutorial, Campaña y Libre.
 - Seis torres con cinco niveles de estadísticas: Pulse Tower, Sniper Tower, Shock Tower, Twin Raptor, Missile Silo y Burst Tower.
-- 25 oleadas en el modo Libre, modo infinito opcional y campaña distribuida en etapas por escenario.
+- 25 oleadas procedimentales en el modo Libre, modo infinito opcional y campaña distribuida en etapas por escenario. Cada etapa ajusta composición, refuerzos, vida, velocidad, daño, recompensas y puntaje según la dificultad elegida.
 - Siete tipos de enemigo, incluidos unidades con escudo, sabotaje de torres y el jefe Overseer.
 - Objetos tácticos, habilidades, pausa, velocidad x2, selector de idioma ES/EN, tema oscuro/claro y efectos de sonido con Web Audio API.
 - Ranking persistente con datos de escenario, dificultad, duración, torres y habilidades usadas.
