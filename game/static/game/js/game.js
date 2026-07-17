@@ -28,6 +28,7 @@ const speedButton = document.getElementById('speed-toggle');
 const empButton = document.getElementById('emp-ability');
 const repairButton = document.getElementById('repair-ability');
 const overclockButton = document.getElementById('overclock-ability');
+const interceptorButton = document.getElementById('interceptor-ability');
 const wavePreview = document.getElementById('wave-preview');
 const comboValue = document.getElementById('combo-value');
 const speedValue = document.getElementById('speed-value');
@@ -231,7 +232,7 @@ class Enemy {
       return true;
     }
 
-    if (this.updateTowerAttack(dt)) return true;
+    this.updateTowerAttack(dt);
     if (this.itemSpeedTimer > 0) { this.itemSpeedTimer -= dt; if (this.itemSpeedTimer <= 0) this.speed = this.baseSpeed; }
     collectItemForEnemy(this);
     if (this.slowTimer > 0) {
@@ -265,7 +266,7 @@ class Enemy {
 
 
   updateTowerAttack(dt) {
-    if (!this.towerAttackDamage || !state.towers.length) return false;
+    if (!this.towerAttackDamage || !state.towers.length) return;
     if (this.towerAttackTimer > 0) this.towerAttackTimer -= dt;
     let target = null;
     let nearest = Infinity;
@@ -276,16 +277,12 @@ class Enemy {
         target = tower;
       }
     }
-    if (!target) return false;
+    if (!target) return;
     this.rotation = Math.atan2(target.y - this.y, target.x - this.x);
     if (this.towerAttackTimer <= 0) {
-      target.hp -= this.towerAttackDamage;
-      createFloatingText(target.x - 16, target.y - 34, `-${this.towerAttackDamage} TORRE`, '#ff7ca7');
-      soundEngine.play('hit');
-      if (target.hp <= 0) destroyTower(target, 'DESTRUIDA');
+      state.enemyProjectiles.push(new EnemyProjectile(this.x, this.y, target, this.towerAttackDamage, this.color));
       this.towerAttackTimer = this.towerAttackCooldown;
     }
-    return true;
   }
 
   draw() {
@@ -588,12 +585,114 @@ class Projectile {
   }
 }
 
+class EnemyProjectile {
+  constructor(fromX, fromY, target, damage, color) {
+    this.x = fromX;
+    this.y = fromY;
+    this.target = target;
+    this.damage = damage;
+    this.color = color;
+    this.speed = 290;
+  }
+
+  update(dt) {
+    if (!this.target || !state.towers.includes(this.target)) return false;
+    const dx = this.target.x - this.x;
+    const dy = this.target.y - this.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance < 12) {
+      this.target.hp -= this.damage;
+      createFloatingText(this.target.x - 16, this.target.y - 34, `-${this.damage} TORRE`, '#ff7ca7');
+      soundEngine.play('hit');
+      if (this.target.hp <= 0) destroyTower(this.target, 'DESTRUIDA');
+      return false;
+    }
+    const step = this.speed * dt;
+    this.x += (dx / distance) * Math.min(step, distance);
+    this.y += (dy / distance) * Math.min(step, distance);
+    return true;
+  }
+
+  draw() {
+    ctx.save();
+    ctx.fillStyle = this.color;
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+class CoreInterceptor {
+  constructor(routeIndex) {
+    const route = getActiveScenario().routes[routeIndex];
+    this.path = route;
+    this.routeIndex = routeIndex;
+    this.pathIndex = route.length - 1;
+    this.x = route[this.pathIndex].x;
+    this.y = route[this.pathIndex].y;
+    this.speed = 124;
+    this.damage = 20;
+    this.range = 86;
+    this.cooldown = 0;
+    this.rotation = Math.PI;
+  }
+
+  update(dt) {
+    if (this.cooldown > 0) this.cooldown -= dt;
+    const target = state.enemies.reduce((closest, enemy) => {
+      const distance = Math.hypot(enemy.x - this.x, enemy.y - this.y);
+      return distance <= this.range && (!closest || distance < closest.distance) ? { enemy, distance } : closest;
+    }, null);
+    if (target && this.cooldown <= 0) {
+      this.rotation = Math.atan2(target.enemy.y - this.y, target.enemy.x - this.x);
+      fireInterceptorProjectile(this, target.enemy);
+      this.cooldown = 0.65;
+    }
+    const next = this.path[this.pathIndex - 1];
+    if (!next) return false;
+    const dx = next.x - this.x;
+    const dy = next.y - this.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance < 1) this.pathIndex -= 1;
+    else {
+      const step = this.speed * dt;
+      this.rotation = Math.atan2(dy, dx);
+      this.x += (dx / distance) * Math.min(step, distance);
+      this.y += (dy / distance) * Math.min(step, distance);
+    }
+    return true;
+  }
+
+  draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#6df2ff';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.moveTo(11, 0); ctx.lineTo(-8, -6); ctx.lineTo(-4, 0); ctx.lineTo(-8, 6); ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
 function fireProjectile(tower, target, damage, isShock = false) {
   const critChance = tower.typeKey === 'burst' && tower.level === 5 ? tower.critChance || 0 : 0;
   const attackType = tower.typeKey === 'missile' ? 'missile' : (tower.burstShots ? 'burst' : 'pulse');
   soundEngine.play(isShock ? 'zap' : 'shoot');
   const projectile = new Projectile(tower.x, tower.y, target, damage, isShock, critChance, attackType, tower.blastRadius || 0);
   projectile.slow = tower.slow || 0;
+  state.projectiles.push(projectile);
+}
+
+function fireInterceptorProjectile(interceptor, target) {
+  soundEngine.play('shoot');
+  const projectile = new Projectile(interceptor.x, interceptor.y, target, interceptor.damage, false, 0, 'pulse');
+  projectile.color = '#6df2ff';
   state.projectiles.push(projectile);
 }
 
@@ -670,6 +769,8 @@ function resetState() {
   state.towers = [];
   state.enemies = [];
   state.projectiles = [];
+  state.enemyProjectiles = [];
+  state.interceptors = [];
   state.floatingTexts = [];
   state.pendingSpawn = null;
   state.waveInProgress = false;
@@ -917,6 +1018,7 @@ function updateAbilityButtons() {
   empButton.disabled = !state.started || state.gameOver || state.credits < 160 || !state.enemies.length;
   repairButton.disabled = !state.started || state.gameOver || state.credits < 120 || state.hp >= state.maxHp;
   overclockButton.disabled = !state.started || state.gameOver || state.credits < 90 || !state.selectedTowerId;
+  interceptorButton.disabled = !state.started || state.gameOver || state.credits < 110 || !state.enemies.length;
 }
 
 
@@ -1211,6 +1313,8 @@ function drawBattlefield() {
 
     state.towers.forEach((tower) => tower.draw());
     state.projectiles.forEach((projectile) => projectile.draw());
+    state.enemyProjectiles.forEach((projectile) => projectile.draw());
+    state.interceptors.forEach((interceptor) => interceptor.draw());
     state.enemies.forEach((enemy) => enemy.draw());
     drawFloatingTexts();
   });
@@ -1331,11 +1435,10 @@ function drawCore(scenario) {
   ctx.arc(0, 0, CORE_OUTER_RADIUS, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.strokeStyle = '#ff5e8e';
-  ctx.lineWidth = 4;
+  ctx.fillStyle = '#ffffff';
   ctx.arc(0, 0, CORE_INNER_RADIUS, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.fillStyle = '#edf5ff';
+  ctx.fill();
+  ctx.fillStyle = '#08121e';
   ctx.font = '12px Orbitron';
   ctx.textAlign = 'center';
   ctx.fillText('CORE', 0, 5);
@@ -1370,6 +1473,8 @@ function updateGame(dt) {
   if (state.playerOverchargeTimer > 0) state.playerOverchargeTimer -= dt;
   state.towers.forEach((tower) => tower.update(dt * (state.playerOverchargeTimer > 0 ? 1.45 : 1)));
   state.projectiles = state.projectiles.filter((projectile) => projectile.update(dt));
+  state.enemyProjectiles = state.enemyProjectiles.filter((projectile) => projectile.update(dt));
+  state.interceptors = state.interceptors.filter((interceptor) => interceptor.update(dt));
   state.enemies = state.enemies.filter((enemy) => enemy.update(dt));
   updateFloatingTexts(dt);
   if (state.comboTimer > 0) {
@@ -1541,6 +1646,21 @@ overclockButton.addEventListener('click', () => {
   tower.overclockTimer = 8;
   createFloatingText(tower.x - 22, tower.y - 45, 'OVERCLOCK', '#ffc869');
   updateHud();
+});
+interceptorButton.addEventListener('click', () => {
+  if (interceptorButton.disabled) return;
+  soundEngine.play('ability');
+  state.credits -= 110;
+  state.abilitiesUsed += 1;
+  const routeCount = getActiveScenario().routes.length;
+  for (let index = 0; index < 3; index += 1) {
+    state.interceptors.push(new CoreInterceptor(index % routeCount));
+  }
+  const core = getCorePosition();
+  createFloatingText(core.x - 42, core.y - 48, 'INTERCEPTORES', '#6df2ff');
+  announce('El Core desplegó tres interceptores por las rutas enemigas.');
+  updateHud();
+  updateAbilityButtons();
 });
 pauseButton.addEventListener('click', () => {
   if (!state.started || state.gameOver) return;
