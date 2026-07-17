@@ -76,42 +76,37 @@
       <p id="node-command-help" class="microcopy" data-i18n="shopHelp">Elegí una torre para construirla en este nodo.</p>
     </div>
 
-    <div class="board-command-grid" aria-label="Opciones de partida disponibles desde el tablero">
-      <details class="play-dialog-section board-command-section controls-card" aria-label="Controles de partida">
-        <summary class="play-popover-trigger" aria-label="Abrir controles"><strong>controles</strong></summary>
-        <div class="play-popover-panel">
-          <h3>Controles</h3>
-          <div class="controls-row">
-            <button id="next-wave" class="button primary" disabled data-i18n="startWave">Iniciar oleada</button>
-            <button id="pause-game" class="button ghost" disabled data-i18n="pause">Pausar</button>
-            <button id="save-stage" class="button ghost" disabled>Guardar etapa</button>
-            <button id="end-run" class="button danger" disabled>Finalizar partida</button>
-            <button id="restart-game" class="button danger" data-i18n="restart">Reiniciar</button>
-            <button id="speed-toggle" class="button ghost" data-i18n="speedToggle">Velocidad x2</button>
-            <div class="audio-tool" aria-label="Control de audio">
-              <button id="mute-audio" class="button ghost" type="button">Silenciar audio</button>
-              <label class="volume-control">Volumen <input id="volume-control" type="range" min="0" max="100" step="5" value="70" /></label>
-            </div>
-            <label class="microcopy"><input id="reduced-motion" type="checkbox" /> Reducir movimiento</label>
-          </div>
+    <section class="board-controls" aria-label="Controles de partida">
+      <h3>Controles</h3>
+      <div class="controls-row controls-row-left">
+        <button id="next-wave" class="button primary" disabled data-i18n="startWave">Iniciar oleada</button>
+        <button id="save-stage" class="button ghost" disabled>Guardar etapa</button>
+        <button id="restart-game" class="button danger" data-i18n="restart">Reiniciar</button>
+        <button id="mute-audio" class="button ghost" type="button">Silenciar audio</button>
+      </div>
+      <div class="controls-row controls-row-right">
+        <button id="pause-game" class="button ghost" disabled data-i18n="pause">Pausar</button>
+        <button id="end-run" class="button danger" disabled>Finalizar partida</button>
+        <button id="speed-toggle" class="button ghost" data-i18n="speedToggle">Velocidad x2</button>
+        <label class="microcopy"><input id="reduced-motion" type="checkbox" /> Reducir movimiento</label>
+        <label class="volume-control">Volumen <input id="volume-control" type="range" min="0" max="100" step="5" value="70" /></label>
+      </div>
+    </section>
 
-          <dl class="ability-row ability-help" aria-label="Qué hace cada acción especial">
-            <div class="ability-card">
-              <dt><button id="emp-ability" class="button ability" disabled data-i18n="empAbility" title="Daña a todos los enemigos y los ralentiza por unos segundos.">EMP global (160c)</button></dt>
-              <dd>Golpea a todos los enemigos en pantalla, les resta 45 HP y los ralentiza durante 2,5 segundos.</dd>
-            </div>
-            <div class="ability-card">
-              <dt><button id="repair-ability" class="button ability" disabled data-i18n="repairAbility" title="Recupera 5 puntos de vida del core, sin pasar el máximo.">Reparar core (120c)</button></dt>
-              <dd>Recupera 5 HP del núcleo; solo se habilita si el core está dañado.</dd>
-            </div>
-            <div class="ability-card">
-              <dt><button id="overclock-ability" class="button ability" disabled data-i18n="overclockAbility" title="Acelera durante 8 segundos la cadencia de la torre seleccionada.">Overclock torre (90c)</button></dt>
-              <dd>Seleccioná una torre construida y por 8 segundos dispara más rápido: su cooldown baja 1,75 veces más veloz.</dd>
-            </div>
-          </dl>
-        </div>
-      </details>
-    </div>
+    <dl class="board-abilities ability-help" aria-label="Qué hace cada acción especial">
+      <div class="ability-card">
+        <dt><button id="emp-ability" class="button ability" disabled data-i18n="empAbility" title="Daña a todos los enemigos y los ralentiza por unos segundos.">EMP global (160c)</button></dt>
+        <dd>Golpea a todos los enemigos en pantalla, les resta 45 HP y los ralentiza durante 2,5 segundos.</dd>
+      </div>
+      <div class="ability-card">
+        <dt><button id="repair-ability" class="button ability" disabled data-i18n="repairAbility" title="Recupera 5 puntos de vida del core, sin pasar el máximo.">Reparar core (120c)</button></dt>
+        <dd>Recupera 5 HP del núcleo; solo se habilita si el core está dañado.</dd>
+      </div>
+      <div class="ability-card">
+        <dt><button id="overclock-ability" class="button ability" disabled data-i18n="overclockAbility" title="Acelera durante 8 segundos la cadencia de la torre seleccionada.">Overclock torre (90c)</button></dt>
+        <dd>Seleccioná una torre construida y por 8 segundos dispara más rápido: su cooldown baja 1,75 veces más veloz.</dd>
+      </div>
+    </dl>
   </section>
 </section>
 {% endblock %}
