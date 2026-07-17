@@ -7,7 +7,13 @@ export const soundEngine = {
   masterGain: null,
   effectsGain: null,
   ambienceGain: null,
+  musicGain: null,
   ambience: null,
+  musicTimer: null,
+  musicStep: 0,
+  musicEnabled: localStorage.getItem('2042-music-muted') !== 'true',
+  musicVolume: Number(localStorage.getItem('2042-music-volume') || 55) / 100,
+  musicMix: localStorage.getItem('2042-music-mix') || 'cyberpunk',
   noiseBuffer: null,
   lastPlayed: {},
   enabled: localStorage.getItem('2042-audio-muted') !== 'true',
@@ -16,8 +22,10 @@ export const soundEngine = {
   setMuted(muted) {
     this.enabled = !muted;
     localStorage.setItem('2042-audio-muted', String(muted));
-    if (!this.enabled) this.stopAmbience();
-    else this.init();
+    if (!this.enabled) {
+      this.stopAmbience();
+      this.stopMusic();
+    } else this.init();
   },
 
   setVolume(value) {
@@ -38,6 +46,7 @@ export const soundEngine = {
       const compressor = audio.createDynamicsCompressor();
       const effects = audio.createGain();
       const ambience = audio.createGain();
+      const music = audio.createGain();
       const reverb = audio.createConvolver();
       const impulse = audio.createBuffer(2, Math.floor(audio.sampleRate * 0.42), audio.sampleRate);
 
@@ -51,6 +60,7 @@ export const soundEngine = {
       master.gain.value = this.volume;
       effects.gain.value = 0.9;
       ambience.gain.value = 0.45;
+      music.gain.value = this.musicEnabled ? this.musicVolume : 0;
       compressor.threshold.value = -18;
       compressor.knee.value = 16;
       compressor.ratio.value = 8;
@@ -58,6 +68,7 @@ export const soundEngine = {
       compressor.release.value = 0.18;
       effects.connect(compressor);
       ambience.connect(compressor);
+      music.connect(compressor);
       effects.connect(reverb);
       reverb.connect(compressor);
       compressor.connect(master);
@@ -66,10 +77,94 @@ export const soundEngine = {
       this.masterGain = master;
       this.effectsGain = effects;
       this.ambienceGain = ambience;
+      this.musicGain = music;
       this.noiseBuffer = this.createNoiseBuffer(1.2);
     }
     if (this.context.state === 'suspended') this.context.resume();
     return this.context;
+  },
+
+  setMusicEnabled(enabled) {
+    this.musicEnabled = enabled;
+    localStorage.setItem('2042-music-muted', String(!enabled));
+    if (!enabled) this.stopMusic();
+    else if (this.context) this.startMusic();
+  },
+
+  setMusicVolume(value) {
+    this.musicVolume = Math.max(0, Math.min(1, Number(value) / 100));
+    localStorage.setItem('2042-music-volume', String(Math.round(this.musicVolume * 100)));
+    if (this.musicGain && this.context) this.musicGain.gain.setTargetAtTime(this.musicEnabled ? this.musicVolume : 0, this.context.currentTime, 0.04);
+  },
+
+  setMusicMix(mix) {
+    if (!this.getMix(mix)) return;
+    this.musicMix = mix;
+    localStorage.setItem('2042-music-mix', mix);
+    if (this.musicTimer) { this.stopMusic(); this.startMusic(); }
+  },
+
+  getMix(key = this.musicMix) {
+    const mixes = {
+      house: { bpm: 124, bass: [55, 55, 65, 55, 55, 73, 65, 55], hats: [2, 6, 10, 14], lead: [440, 0, 523, 0, 494, 0, 587, 0] },
+      techno: { bpm: 136, bass: [49, 49, 49, 58, 49, 49, 65, 58], hats: [1, 3, 5, 7, 9, 11, 13, 15], lead: [0, 294, 0, 330, 0, 294, 370, 0] },
+      phunk: { bpm: 142, bass: [46, 46, 0, 55, 46, 0, 62, 55], hats: [2, 7, 10, 15], lead: [0, 277, 0, 233, 0, 277, 311, 0] },
+      cyberpunk: { bpm: 128, bass: [52, 52, 62, 52, 45, 45, 52, 62], hats: [2, 6, 10, 14], lead: [330, 0, 392, 0, 440, 0, 392, 0] },
+      dubstep: { bpm: 140, bass: [39, 0, 39, 46, 0, 39, 52, 46], hats: [2, 6, 10, 14], lead: [0, 220, 0, 196, 0, 233, 0, 196] },
+    };
+    return mixes[key];
+  },
+
+  musicTone(frequency, start, duration, { type = 'sawtooth', volume = 0.035, cutoff = 900 } = {}) {
+    const audio = this.context;
+    if (!audio || !this.musicGain) return;
+    const oscillator = audio.createOscillator();
+    const filter = audio.createBiquadFilter();
+    const gain = audio.createGain();
+    oscillator.type = type; oscillator.frequency.setValueAtTime(Math.max(1, frequency), start);
+    filter.type = 'lowpass'; filter.frequency.setValueAtTime(cutoff, start);
+    gain.gain.setValueAtTime(0.0001, start); gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    oscillator.connect(filter); filter.connect(gain); gain.connect(this.musicGain);
+    oscillator.start(start); oscillator.stop(start + duration + 0.03);
+  },
+
+  musicNoise(start, duration, volume, highpass = 4000) {
+    const audio = this.context;
+    if (!audio || !this.noiseBuffer || !this.musicGain) return;
+    const source = audio.createBufferSource(); const filter = audio.createBiquadFilter(); const gain = audio.createGain();
+    source.buffer = this.noiseBuffer; filter.type = 'highpass'; filter.frequency.value = highpass;
+    gain.gain.setValueAtTime(volume, start); gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    source.connect(filter); filter.connect(gain); gain.connect(this.musicGain); source.start(start); source.stop(start + duration);
+  },
+
+  scheduleMusicStep() {
+    const audio = this.context; const mix = this.getMix();
+    if (!audio || !mix || !this.musicEnabled) return;
+    const step = this.musicStep % 16; const beat = 60 / mix.bpm / 4; const start = audio.currentTime + 0.015;
+    if (step % 4 === 0) this.musicTone(52, start, 0.16, { type: 'sine', volume: 0.13, cutoff: 180 });
+    if (mix.hats.includes(step)) this.musicNoise(start, 0.035, 0.018, 5200);
+    const bass = mix.bass[Math.floor(step / 2)];
+    if (bass && step % 2 === 0) this.musicTone(bass, start, beat * 1.7, { type: this.musicMix === 'dubstep' ? 'square' : 'sawtooth', volume: 0.038, cutoff: this.musicMix === 'dubstep' ? 420 : 620 });
+    const lead = mix.lead[Math.floor(step / 2)];
+    if (lead && step % 2 === 0) this.musicTone(lead, start, beat * 1.45, { type: 'triangle', volume: 0.018, cutoff: 1800 });
+    this.musicStep += 1;
+  },
+
+  startMusic() {
+    const audio = this.init();
+    if (!audio || !this.musicEnabled || this.musicTimer) return;
+    this.musicGain.gain.setTargetAtTime(this.musicVolume, audio.currentTime, 0.04);
+    this.musicStep = 0;
+    const beat = 60000 / this.getMix().bpm / 4;
+    this.scheduleMusicStep();
+    this.musicTimer = window.setInterval(() => this.scheduleMusicStep(), beat);
+  },
+
+  stopMusic() {
+    if (this.musicTimer) window.clearInterval(this.musicTimer);
+    this.musicTimer = null;
+    if (this.musicGain && this.context) this.musicGain.gain.setTargetAtTime(0.0001, this.context.currentTime, 0.035);
   },
 
   createNoiseBuffer(duration) {
