@@ -3,210 +3,163 @@
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![Django](https://img.shields.io/badge/Django-5.2-092E20?logo=django&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-Canvas-F7DF1E?logo=javascript&logoColor=111)
-![HTML5](https://img.shields.io/badge/HTML5-Templates-E34F26?logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-Responsive-1572B6?logo=css3&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Render-4169E1?logo=postgresql&logoColor=white)
-![Gunicorn](https://img.shields.io/badge/Gunicorn-23.0-499848?logo=gunicorn&logoColor=white)
 ![Render](https://img.shields.io/badge/Deploy-Render-46E3B7?logo=render&logoColor=111)
 
-Juego web futurista de defensa de torres desarrollado con **Python + Django + JavaScript Canvas**. El proyecto está en estado funcional: permite jugar partidas completas en navegador, persistir puntajes en base de datos, consultar el ranking y desplegarse en Render con PostgreSQL, Gunicorn y WhiteNoise.
+Juego web de defensa de torres futurista desarrollado con **Django** y **JavaScript Canvas**. La simulación se ejecuta en el navegador; Django renderiza las páginas, expone la API de puntajes y persiste el ranking.
 
-## Estado actual del proyecto
+## Características
 
-- **Aplicación Django lista para producción** con configuración por variables de entorno, `DEBUG=false`, seguridad HTTPS en producción y soporte para `RENDER_EXTERNAL_HOSTNAME`.
-- **Juego playable en frontend** usando Canvas y JavaScript vanilla: el backend sirve vistas, estáticos, APIs y persistencia; la simulación visual corre en el navegador.
-- **Ranking persistente** con modelo `LeaderboardEntry`, página de ranking y endpoints JSON para consultar/guardar puntajes.
-- **Deploy preparado para Render** mediante `render.yaml`, `build.sh`, `runtime.txt`, Gunicorn, WhiteNoise y base PostgreSQL administrada por Render.
-- **Desarrollo local simple** con SQLite por defecto si no se define `DATABASE_URL`.
-
-## Características jugables
-
-- 3 escenarios seleccionables: **Muelles de Neón**, **Desierto Ígneo** y **Ruinas Aurora**.
-- Rutas múltiples por escenario, nodos fijos de construcción y props visuales dibujados en Canvas.
-- 4 torres jugables:
-  - **Pulse Tower**: cobertura estable.
-  - **Sniper Tower**: alto daño y largo alcance.
-  - **Shock Tower**: control de masas con ralentización.
-  - **Burst Tower**: ráfagas de 5 disparos.
-- 5 niveles de mejora por torre, con costos y estadísticas progresivas.
-- 8 oleadas con enemigos tipo scout, crawler, tank, ghost y boss final **Overseer**.
-- Habilidades tácticas:
-  - **EMP global**.
-  - **Reparar core**.
-  - **Overclock de torre seleccionada**.
-- Velocidad x2, pausa/reanudación, reinicio, combo táctico, vista previa de amenazas y feedback sonoro con Web Audio API.
-- Preferencias de idioma **ES/EN** y tema **oscuro/claro** persistidas en `localStorage`.
+- Cinco escenarios con rutas, nodos de construcción y modificadores propios: **Muelles de Neón**, **Desierto Ígneo**, **Ruinas Aurora**, **Bastión Orbital** y **Dosel Bioforja**.
+- Cuatro dificultades: Fácil, Normal, Difícil y Pesadilla; y tres modos de juego: Tutorial, Campaña y Libre.
+- Seis torres con cinco niveles de estadísticas: Pulse Tower, Sniper Tower, Shock Tower, Twin Raptor, Missile Silo y Burst Tower.
+- 25 oleadas en el modo Libre, modo infinito opcional y campaña distribuida en etapas por escenario.
+- Siete tipos de enemigo, incluidos unidades con escudo, sabotaje de torres y el jefe Overseer.
+- Objetos tácticos, habilidades, pausa, velocidad x2, selector de idioma ES/EN, tema oscuro/claro y efectos de sonido con Web Audio API.
+- Ranking persistente con datos de escenario, dificultad, duración, torres y habilidades usadas.
 
 ## Stack tecnológico
 
 | Capa | Tecnología |
 | --- | --- |
-| Backend | Python 3.12, Django 5.2 |
+| Backend | Python 3.12, Django 5.2.6 |
 | Frontend | HTML, CSS responsive, JavaScript vanilla, Canvas API, Web Audio API |
-| Persistencia | SQLite en local, PostgreSQL en Render vía `dj-database-url` y `psycopg` |
-| Estáticos | Django staticfiles + WhiteNoise con manifiesto comprimido |
-| Producción | Gunicorn, Render Web Service, Render PostgreSQL |
-| Configuración | Variables de entorno, `render.yaml`, `build.sh`, `runtime.txt` |
+| Persistencia | SQLite en local; PostgreSQL mediante `dj-database-url` y `psycopg` en Render |
+| Estáticos | Django staticfiles y WhiteNoise con manifiesto comprimido |
+| Producción | Gunicorn, Render Web Service y Render PostgreSQL |
 
-## Estructura principal
+## Estructura del proyecto
 
 ```text
 .
-├── config/                 # Settings, URLs, ASGI/WSGI y favicon
-├── game/                   # App Django del juego
-│   ├── static/game/        # CSS y JavaScript del juego
-│   ├── templates/game/     # Templates Django
-│   ├── models.py           # Ranking persistente
-│   ├── views.py            # Vistas y endpoints API
-│   └── urls.py             # Rutas de la app
-├── build.sh                # Build command para Render
-├── manage.py
-├── render.yaml             # Infra declarativa de Render
+├── config/                     # Configuración Django, URLs, middleware y favicons
+├── game/
+│   ├── migrations/             # Migraciones del ranking
+│   ├── static/game/
+│   │   ├── css/                # Estilos de la interfaz
+│   │   └── js/                 # Motor Canvas, oleadas, torres, modos y API
+│   ├── templates/game/         # Página de juego y ranking
+│   ├── models.py               # Modelo LeaderboardEntry
+│   └── views.py                # Vistas y endpoints JSON
+├── build.sh                    # Comando de build para Render
+├── render.yaml                 # Infraestructura de Render
 ├── requirements.txt
-└── runtime.txt             # Versión de Python para Render
+└── runtime.txt
 ```
 
 ## Desarrollo local
+
+### Requisitos
+
+- Python 3.12 o superior.
+- `pip` y un entorno virtual recomendados.
+
+### Inicio rápido
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # Linux / macOS
 # .venv\Scripts\activate   # Windows
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
 ```
 
-La aplicación queda disponible en <http://127.0.0.1:8000/>.
+Abrí <http://127.0.0.1:8000/> para jugar. El ranking se puede consultar en <http://127.0.0.1:8000/leaderboard/>.
 
-> Nota: el proyecto usa SQLite local por defecto. Solo necesitás configurar `DATABASE_URL` si querés usar otra base.
+SQLite es la base predeterminada en local, por lo que no hace falta definir variables de entorno para comenzar.
+
+## API de ranking
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `GET` | `/api/leaderboard/` | Devuelve los 20 mejores puntajes en JSON. |
+| `POST` | `/api/save-score/` | Guarda una partida y devuelve la entrada creada. |
+
+El `POST` requiere JSON y protección CSRF de Django. Los campos numéricos aceptados son `score`, `waves_cleared`, `enemies_destroyed`, `duration_seconds`, `towers_built`, `towers_upgraded` y `abilities_used`; todos deben ser enteros no negativos. También se pueden enviar `player_name`, `scenario`, `difficulty` y `game_seed`.
+
+Ejemplo de cuerpo de solicitud:
+
+```json
+{
+  "player_name": "Ada",
+  "score": 1234,
+  "waves_cleared": 12,
+  "enemies_destroyed": 86,
+  "scenario": "Muelles de Neón",
+  "difficulty": "normal",
+  "duration_seconds": 540,
+  "towers_built": 9,
+  "towers_upgraded": 14,
+  "abilities_used": 4,
+  "game_seed": "example-seed"
+}
+```
+
+La página inicial entrega la cookie CSRF necesaria para el cliente web. Para una integración externa, obtené esa cookie y enviá su valor en el encabezado `X-CSRFToken` junto con `Content-Type: application/json`.
 
 ## Variables de entorno
 
-### Producción
+| Variable | Uso |
+| --- | --- |
+| `SECRET_KEY` | Obligatoria para producción; no se permite la clave de desarrollo con `DEBUG=false`. |
+| `DEBUG` | `true` en local por defecto; configurala como `false` en producción. |
+| `DATABASE_URL` | URL de PostgreSQL u otra base compatible; si falta, se usa SQLite. |
+| `ALLOWED_HOSTS` | Lista de hosts separados por comas. |
+| `CSRF_TRUSTED_ORIGINS` | Orígenes adicionales separados por comas e incluyendo el esquema. |
+| `RENDER_EXTERNAL_HOSTNAME` | Render la provee y se incorpora automáticamente a hosts y CSRF. |
+| `WEB_CONCURRENCY` | Cantidad de workers para Gunicorn. |
 
-- `SECRET_KEY`: clave secreta de Django.
-- `DEBUG=false`: desactiva modo debug y activa cookies seguras/HSTS.
-- `DATABASE_URL`: connection string de PostgreSQL.
-- `ALLOWED_HOSTS`: hosts permitidos, por ejemplo `.onrender.com`.
-- `CSRF_TRUSTED_ORIGINS`: orígenes extra separados por coma, si aplica.
-- `WEB_CONCURRENCY=2`: cantidad de workers para Gunicorn en Render.
-
-### Local
-
-No es obligatorio crear un `.env` para correr el proyecto con SQLite. Si necesitás variables locales, exportalas en tu shell o usá el método de carga de entorno que prefieras.
-
-## Base de datos y ranking
-
-El ranking guarda:
-
-- nombre del piloto;
-- score;
-- oleadas superadas;
-- enemigos destruidos;
-- fecha de creación.
-
-Rutas relacionadas:
-
-- `/leaderboard/`: ranking completo.
-- `/api/leaderboard/`: últimos mejores puntajes en JSON.
-- `/api/save-score/`: endpoint POST para guardar una partida.
+> Cuando `DEBUG=false`, Django activa redirección HTTPS, cookies seguras y HSTS. Definí siempre un `SECRET_KEY` de producción.
 
 ## Deploy en Render
 
-El repositorio ya incluye `render.yaml` con un Web Service y una base PostgreSQL free tier.
-
-### Build Command
+El repositorio incluye `render.yaml` para crear un Web Service y una base PostgreSQL. Render ejecuta:
 
 ```bash
 ./build.sh
 ```
 
-El build instala dependencias, recolecta archivos estáticos y ejecuta migraciones.
-
-### Start Command
+El script instala dependencias, ejecuta `collectstatic` y aplica las migraciones. El servicio se inicia con:
 
 ```bash
 gunicorn config.wsgi:application
 ```
 
-### Root Directory
+Dejá vacío **Root Directory** si el repositorio se despliega desde su raíz. La configuración declarativa ya define `DEBUG=false`, genera `SECRET_KEY`, conecta `DATABASE_URL`, configura `ALLOWED_HOSTS=.onrender.com` y establece dos workers.
 
-Dejalo vacío si este proyecto está en la raíz del repositorio.
+## Administración
 
-## Admin Django
-
-Para crear un usuario administrador:
+Creá un usuario administrador con:
 
 ```bash
 python manage.py createsuperuser
 ```
 
-Luego entrá en `/admin/`.
+Después ingresá a `/admin/`.
 
-## Checks útiles
+## Verificación
 
 ```bash
 python manage.py check
+python manage.py makemigrations --check --dry-run
 python manage.py test
-python manage.py migrate
+python manage.py collectstatic --noinput
 ```
 
-## Nota de arquitectura
+El workflow `.github/workflows/quality.yml` ejecuta estas verificaciones en GitHub Actions con Python 3.13.
 
-El juego corre visualmente en el navegador con JavaScript y Canvas. Django se encarga de renderizar páginas, exponer APIs, servir estáticos y persistir el ranking. Esa separación mantiene el backend simple y evita convertirlo en un motor gráfico innecesario.
+## Ajuste de gameplay
 
-## Calidad y CI
-
-El repositorio incluye un workflow de GitHub Actions en `.github/workflows/quality.yml` que instala dependencias, ejecuta `python manage.py check`, valida migraciones, corre tests y prueba `collectstatic`.
-
-Herramientas recomendadas para crecer el pipeline:
-
-- `ruff` para lint y formato de Python.
-- `djlint` para templates Django.
-- `prettier` o `eslint` si se suma tooling Node para JavaScript/CSS.
-
-## Configuración rápida
-
-Copiá `.env.example` a `.env` y ajustá secretos, hosts permitidos, orígenes CSRF y `DATABASE_URL` según tu entorno.
-
-## Troubleshooting
-
-### `collectstatic` falla
-
-- Verificá que `STATIC_ROOT` apunte a un directorio escribible.
-- En Render, confirmá que el build command ejecute `python manage.py collectstatic --noinput` después de instalar dependencias.
-
-### Errores de PostgreSQL
-
-- Revisá que `DATABASE_URL` exista y use el formato esperado por `dj-database-url`.
-- Confirmá conectividad, usuario, contraseña y nombre de base.
-- Corré `python manage.py migrate` después de cambiar de base.
-
-### Problemas con `ALLOWED_HOSTS`
-
-- Agregá el dominio público de deploy a `DJANGO_ALLOWED_HOSTS`.
-- En local usá `127.0.0.1,localhost`.
-
-### Problemas con CSRF
-
-- Agregá el origen completo con esquema a `CSRF_TRUSTED_ORIGINS`, por ejemplo `https://tu-app.onrender.com`.
-- Si cambia el dominio de Render, actualizá esta variable.
-
-## Balanceo de juego
-
-- Torres: ajustá costo, daño, rango, cooldown y mejoras en `game/static/game/js/towers.js`.
-- Enemigos y oleadas: modificá vida, velocidad, recompensa, resistencias y plan de oleadas en `game/static/game/js/waves.js`.
-- Escenarios: editá rutas, nodos, paletas y modificadores en `game/static/game/js/scenarios.js` y `game/static/game/js/modes.js`.
-- Dificultades: balanceá HP inicial, créditos, multiplicadores de enemigos y score en `game/static/game/js/modes.js`.
-
-## Capturas o GIF
-
-Para documentar cambios visuales, agregá capturas o GIFs en `docs/` y enlazalos desde esta sección.
+- **Torres:** `game/static/game/js/towers.js`.
+- **Enemigos y oleadas:** `game/static/game/js/waves.js`.
+- **Escenarios y rutas:** `game/static/game/js/scenarios.js`.
+- **Dificultades, modos y objetos:** `game/static/game/js/modes.js`.
 
 ## Contribuir
 
 1. Creá una rama desde `main`.
-2. Instalá dependencias con `pip install -r requirements.txt`.
-3. Corré `python manage.py check`, `python manage.py makemigrations --check --dry-run` y `python manage.py test`.
-4. Describí cambios de gameplay, accesibilidad y migraciones en el PR.
+2. Instalá las dependencias y ejecutá todas las verificaciones de la sección anterior.
+3. Incluí migraciones cuando cambie el modelo de datos.
+4. Describí en el PR los cambios de gameplay, accesibilidad, API o despliegue.
