@@ -65,16 +65,18 @@
       <div id="overlay-message" class="overlay-message hidden"></div>
     </div>
 
-    <div id="node-command-popover" class="node-command-popover hidden" aria-live="polite">
-      <button id="node-command-close" class="node-command-close" type="button" aria-label="Cerrar opciones del nodo">×</button>
-      <p id="node-command-kicker" class="node-command-kicker">Gestionar</p>
-      <h3 id="node-command-title">Nodo de torre</h3>
-      <div id="tower-shop" class="tower-shop"></div>
-      <div id="selected-tower-panel" class="selected-tower-panel">
-        <p class="microcopy" data-i18n="selectedHelp">Seleccioná una torre ya construida para ver stats, nivel y mejora siguiente.</p>
-      </div>
-      <p id="node-command-help" class="microcopy" data-i18n="shopHelp">Elegí una torre para construirla en este nodo.</p>
-    </div>
+    <dialog id="node-command-popover" class="info-dialog node-command-dialog" aria-labelledby="node-command-title" aria-describedby="node-command-help">
+      <section class="card dialog-card node-command-popover" aria-live="polite">
+        <button id="node-command-close" class="node-command-close" type="button" data-dialog-close aria-label="Cerrar opciones del nodo">×</button>
+        <p id="node-command-kicker" class="node-command-kicker">Gestionar</p>
+        <h3 id="node-command-title">Nodo de torre</h3>
+        <div id="tower-shop" class="tower-shop"></div>
+        <div id="selected-tower-panel" class="selected-tower-panel">
+          <p class="microcopy" data-i18n="selectedHelp">Seleccioná una torre ya construida para ver stats, nivel y mejora siguiente.</p>
+        </div>
+        <p id="node-command-help" class="microcopy" data-i18n="shopHelp">Elegí una torre para construirla en este nodo.</p>
+      </section>
+    </dialog>
 
     <section class="board-controls" aria-label="Controles de partida">
       <h3>Controles</h3>

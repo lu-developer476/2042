@@ -1536,25 +1536,17 @@ td { color: var(--muted); }
   }
 }
 
-.node-command-popover {
-  position: relative;
-  z-index: 6;
-  width: 100%;
-  max-height: min(42svh, 420px);
-  overflow: auto;
-  display: grid;
-  gap: 10px;
-  margin-top: 12px;
-  padding: 16px;
-  border: 1px solid var(--line-strong);
-  border-radius: 20px;
-  background: linear-gradient(145deg, rgba(14, 29, 45, 0.96), rgba(31, 35, 70, 0.96));
-  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.42), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(16px);
+.node-command-dialog {
+  width: min(94vw, 620px);
 }
 
-.node-command-popover.hidden {
-  display: none;
+.node-command-popover {
+  width: 100%;
+  max-height: min(82svh, 700px);
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  background: linear-gradient(145deg, rgba(14, 29, 45, 0.96), rgba(31, 35, 70, 0.96));
 }
 
 .node-command-close {
