@@ -45,6 +45,9 @@ const defenseStatusPanelValue = document.getElementById('defense-status-panel-va
 const accessibleStatus = document.getElementById('accessible-status');
 const muteAudioButton = document.getElementById('mute-audio');
 const volumeControl = document.getElementById('volume-control');
+const musicMixSelect = document.getElementById('music-mix');
+const musicToggleButton = document.getElementById('music-toggle');
+const musicVolumeControl = document.getElementById('music-volume');
 const reducedMotionInput = document.getElementById('reduced-motion');
 const PROGRESS_STORAGE_KEY = '2042-stage-progress';
 const PATH_BODY_WIDTH = 24;
@@ -807,6 +810,7 @@ function resetState() {
 function startGame() {
   soundEngine.play('start');
   soundEngine.startAmbience();
+  soundEngine.startMusic();
   state.started = true;
   state.playerName = playerNameInput.value.trim() || 'Piloto Anónimo';
   state.startedAt = Date.now();
@@ -1126,6 +1130,7 @@ function resumeSavedProgress() {
   pauseButton.disabled = false;
   startButton.disabled = true;
   soundEngine.startAmbience();
+  soundEngine.startMusic();
   renderScenarioPicker();
   renderDifficultyPicker();
   updateHud();
@@ -1267,6 +1272,7 @@ function completeCampaignStage() {
 function finishGame(victory) {
   state.gameOver = true;
   soundEngine.stopAmbience();
+  soundEngine.stopMusic();
   state.waveInProgress = false;
   state.pendingSpawn = null;
   nextWaveButton.disabled = true;
@@ -1687,6 +1693,7 @@ endRunButton?.addEventListener('click', () => {
 restartButton.addEventListener('click', () => {
   soundEngine.play('ui');
   soundEngine.stopAmbience();
+  soundEngine.stopMusic();
   startButton.disabled = false;
   resetState();
 });
@@ -1722,6 +1729,13 @@ muteAudioButton?.addEventListener('click', () => {
   muteAudioButton.textContent = soundEngine.enabled ? 'Silenciar audio' : 'Activar audio';
 });
 volumeControl?.addEventListener('input', () => soundEngine.setVolume(volumeControl.value));
+musicMixSelect?.addEventListener('change', () => soundEngine.setMusicMix(musicMixSelect.value));
+musicToggleButton?.addEventListener('click', () => {
+  soundEngine.setMusicEnabled(!soundEngine.musicEnabled);
+  musicToggleButton.textContent = soundEngine.musicEnabled ? 'Pausar música' : 'Activar música';
+  musicToggleButton.setAttribute('aria-pressed', String(soundEngine.musicEnabled));
+});
+musicVolumeControl?.addEventListener('input', () => soundEngine.setMusicVolume(musicVolumeControl.value));
 reducedMotionInput?.addEventListener('change', () => {
   state.reducedMotion = reducedMotionInput.checked;
   localStorage.setItem('2042-reduced-motion', String(state.reducedMotion));
@@ -1739,6 +1753,12 @@ document.addEventListener('keydown', (event) => {
 });
 if (volumeControl) volumeControl.value = Math.round(soundEngine.volume * 100);
 if (muteAudioButton) muteAudioButton.textContent = soundEngine.enabled ? 'Silenciar audio' : 'Activar audio';
+if (musicMixSelect) musicMixSelect.value = soundEngine.musicMix;
+if (musicVolumeControl) musicVolumeControl.value = Math.round(soundEngine.musicVolume * 100);
+if (musicToggleButton) {
+  musicToggleButton.textContent = soundEngine.musicEnabled ? 'Pausar música' : 'Activar música';
+  musicToggleButton.setAttribute('aria-pressed', String(soundEngine.musicEnabled));
+}
 if (reducedMotionInput) reducedMotionInput.checked = state.reducedMotion;
 updateProgressButtons();
 if (document.documentElement) document.documentElement.dataset.reducedMotion = String(state.reducedMotion);

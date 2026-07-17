@@ -93,6 +93,16 @@
         <button id="speed-toggle" class="button ghost" data-i18n="speedToggle">Velocidad x2</button>
         <label class="microcopy"><input id="reduced-motion" type="checkbox" /> Reducir movimiento</label>
         <label class="volume-control">Volumen <input id="volume-control" type="range" min="0" max="100" step="5" value="70" /></label>
+        <fieldset class="music-console">
+          <legend>Música generativa</legend>
+          <label for="music-mix">Mezcla</label>
+          <select id="music-mix" class="input" aria-label="Elegir mezcla musical">
+            <option value="house">House</option><option value="techno">Techno</option><option value="phunk">Phunk</option><option value="cyberpunk" selected>Cyberpunk</option><option value="dubstep">Dubstep</option>
+          </select>
+          <button id="music-toggle" class="button ghost" type="button" aria-pressed="true">Pausar música</button>
+          <label class="volume-control" for="music-volume">Música <input id="music-volume" type="range" min="0" max="100" step="5" value="55" /></label>
+          <p class="microcopy">Loops sintetizados en tiempo real: sin archivos ni licencias externas.</p>
+        </fieldset>
       </div>
     </section>
 

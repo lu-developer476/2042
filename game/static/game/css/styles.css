@@ -1795,3 +1795,35 @@ summary,
   .guide-enemy-grid article { padding: 9px; }
   .guide-enemy-grid p { font-size: .74rem; }
 }
+
+.music-console {
+  display: grid;
+  grid-template-columns: auto minmax(110px, 1fr) auto;
+  gap: 8px 10px;
+  align-items: center;
+  width: min(100%, 620px);
+  margin: 0;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--purple), var(--line) 45%);
+  border-radius: 12px;
+  background: rgba(155, 108, 255, 0.08);
+}
+
+.music-console legend {
+  padding: 0 5px;
+  color: var(--cyan);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.music-console > label:not(.volume-control) { color: var(--muted); font-size: 0.82rem; }
+.music-console .input { min-height: 34px; padding: 6px 8px; }
+.music-console .microcopy { grid-column: 1 / -1; margin: 0; }
+.music-console .volume-control { grid-column: 1 / -1; }
+
+@media (max-width: 600px) {
+  .music-console { grid-template-columns: 1fr; }
+  .music-console .button, .music-console .input { width: 100%; }
+}
