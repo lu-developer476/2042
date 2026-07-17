@@ -1410,7 +1410,7 @@ function positionNodeCommand() {
 
 function closeNodeCommand() {
   activeCommandNode = null;
-  nodeCommandPopover?.classList.add('hidden');
+  window.I18N_2042?.closeDialog?.(nodeCommandPopover);
 }
 
 function openNodeCommand(node) {
@@ -1436,7 +1436,7 @@ function openNodeCommand(node) {
   renderSelectedTower();
   updateAbilityButtons();
   positionNodeCommand(node);
-  nodeCommandPopover?.classList.remove('hidden');
+  window.I18N_2042?.openDialog?.(nodeCommandPopover);
 }
 
 function buildTowerAtNode(node, towerTypeKey) {
@@ -1620,6 +1620,9 @@ if (reducedMotionInput) reducedMotionInput.checked = state.reducedMotion;
 updateProgressButtons();
 if (document.documentElement) document.documentElement.dataset.reducedMotion = String(state.reducedMotion);
 nodeCommandClose?.addEventListener('click', closeNodeCommand);
+nodeCommandPopover?.addEventListener('close', () => {
+  activeCommandNode = null;
+});
 canvas.addEventListener('click', handleCanvasClick);
 window.addEventListener('languagechange', () => { renderShop(); renderSelectedTower(); updateWavePreview(); });
 
